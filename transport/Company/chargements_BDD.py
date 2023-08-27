@@ -1,12 +1,12 @@
-from .models import (Transporteurs, Voyageurs, 
+from Company.models import (Transporteurs, Voyageurs, 
                      Voyages, Compagnie, Transports
                      )
-import datetime
+from datetime import (tzinfo, timedelta, datetime, timezone)
 
 
-def addDateTimes(AAAA, MM, DD, HH, MN):
+def addDateTimes(AAAA, MM, DD, HH, MN, SS=00):
     """ cette fonction permet de remplir le champs datetime dans la bdd """
-    return datetime.datetime(AAAA, MM, DD, HH, MN, tzinfo=datetime.timezone.utc)
+    return datetime(year = AAAA, month = MM, day = DD, hour = HH, minute = MN, second = SS)
 
 dataTransporteurs = {
     "name" : ["Charly", "Chapart", "Martin", "Martial"],
@@ -26,9 +26,9 @@ dataVoyageurs = {
 
 dataVoyages = {
     "date_depart" : [addDateTimes(2022, 8, 5, 14, 00), addDateTimes(2023, 9, 22, 12, 40), addDateTimes(2022, 5, 22, 16, 30),
-    addDateTimes(2023, 3, 16, 2, 5), addDateTimes(2022, 6, 16, 10, 8), addDateTimes(2023, 1, 31, 24, 5)],
+    addDateTimes(2023, 3, 16, 2, 50), addDateTimes(2022, 6, 16, 10, 28), addDateTimes(2023, 1, 31, 23, 35)],
     "date_arrivee" : [addDateTimes(2022, 8, 5, 10, 00), addDateTimes(2023, 9, 12, 12, 40), addDateTimes(2022, 5, 30, 16, 30),
-    addDateTimes(2023, 3, 15, 21, 5), addDateTimes(2022, 6, 15, 20, 8), addDateTimes(2023, 1, 31, 20, 5)],
+    addDateTimes(2023, 3, 15, 21, 15), addDateTimes(2022, 6, 15, 20, 38), addDateTimes(2023, 1, 31, 20, 25)],
     "ville_depart" : ["OYEM", "LIBREVILLE", "PORT-GENTIL", "FRANCEVILLE", "NTOUM"],
     "ville_arrivee" : ["LIBREVILLE", "PORT-GENTIL", "LIBREVILLE", "OYEM", "LIBREVILLE"],
     "prix_unitaire" :[7000, 20000, 20000, 50000, 1000]
@@ -43,6 +43,6 @@ dataTransports = {
 }
 
 dataCompany = {
-     "name" : [],
-    "siren" : []
+    "name" : ["Major", "Setrag", "Ndong Sima", "Major", "Ndong Sima", "Major", "GTM"],
+    "siren" : [123456, 456789, 654321, 987321, 951741, 258456, 985325]
 }
