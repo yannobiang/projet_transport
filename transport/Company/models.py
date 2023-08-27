@@ -70,5 +70,4 @@ class Transports(models.Model):
     class Meta :
         verbose_name = ("Transport")
         verbose_name_plural = ("Transports")  
-    def __str__(self) -> str :
-        return self.name
+    
