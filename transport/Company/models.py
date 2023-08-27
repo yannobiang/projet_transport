@@ -4,8 +4,8 @@ from django.db import models
 
 class Transporteurs(models.Model) :
 
-    nom = models.CharField(max_length=50)
-    prenom = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    firstname = models.CharField(max_length=50)
     date_de_naissance = models.DateField()
     adresse = models.TextField()
     ville = models.CharField(max_length=30)
@@ -16,14 +16,14 @@ class Transporteurs(models.Model) :
     class Meta :
         verbose_name = ("Transporteur")
         verbose_name_plural = ("Transporteurs")
-        ordering = ["nom","prenom"]
+        ordering = ["name","firstname"]
     def __str__(self) -> str:
         return self.name
 
 class Voyageurs(models.Model) :
 
-    nom_V = models.CharField(max_length=50)
-    prenom_V = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    firstname = models.CharField(max_length=50)
     email = models.EmailField()
     class Meta :
         verbose_name = ("Voyageur")
@@ -47,12 +47,10 @@ class Voyages(models.Model) :
     class Meta :
         verbose_name = ("Voyage")
         verbose_name_plural = ("Voyages")
-        
-    def __str__(self) -> str:
-        return self.name
+    
 class Compagnie(models.Model):
 
-    nom_E = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
     siren = models.BigIntegerField()
     transporteurs = models.ForeignKey(Transporteurs, on_delete=models.CASCADE)
 
@@ -69,10 +67,8 @@ class Transports(models.Model):
     nombre_de_place = models.IntegerField()
     voyages = models.ForeignKey(Voyages, on_delete=models.CASCADE)
     compagnie = models.ForeignKey(Compagnie, on_delete=models.CASCADE)
-
     class Meta :
         verbose_name = ("Transport")
-        verbose_name_plural = ("Transports")
-        
+        verbose_name_plural = ("Transports")  
     def __str__(self) -> str :
         return self.name

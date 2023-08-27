@@ -4,8 +4,8 @@ from Company.models import (Transporteurs, Voyageurs,
                             Compagnie, Transports)
 # Register your models here.
 class AdminTransporteurs(admin.ModelAdmin) :
-    list_display = ("nom", 
-    "prenom",
+    list_display = ("name", 
+    "firstname",
     "date_de_naissance",
     "adresse",
     "ville",
@@ -14,8 +14,8 @@ class AdminTransporteurs(admin.ModelAdmin) :
     "email" )
 
 class AdminVoyageurs(admin.ModelAdmin) :
-    list_display = ("nom_V",
-    "prenom_V",
+    list_display = ("name",
+    "firstname",
     "email")
 
 class AdminAsso_trans_voyageur(admin.ModelAdmin) :
@@ -30,7 +30,7 @@ class AdminVoyages(admin.ModelAdmin) :
     "transporteurs")
 
 class AdminCompagnie(admin.ModelAdmin) :
-    list_display = ("nom_E",
+    list_display = ("name",
     "siren",
     "transporteurs")
 class AdminTransports(admin.ModelAdmin) :
