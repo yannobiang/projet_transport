@@ -1,10 +1,11 @@
 
 from datetime import (tzinfo, timedelta, datetime, timezone)
-
+import pytz
 
 def addDateTimes(AAAA, MM, DD, HH, MN, SS=00):
     """ cette fonction permet de remplir le champs datetime dans la bdd """
-    return datetime(year = AAAA, month = MM, day = DD, hour = HH, minute = MN, second = SS)
+    return datetime(year = AAAA, month = MM, day = DD, hour = HH, 
+    minute = MN, second = SS, tzinfo=pytz.UTC)
 
 dataTransporteurs = {
     "name" : ["Charly", "Chapart", "Martin", "Martial"],
@@ -42,5 +43,5 @@ dataTransports = {
 
 dataCompagnie = {
     "name" : ["Major", "Setrag", "Ndong Sima", "Major", "Ndong Sima", "Major", "GTM"],
-    "siren" : [123456, 456789, 654321, 987321, 951741, 258456, 985325]
+    "siren" : ["123456", "456789", "654321", "987321", "951741", "258456", "985325"]
 }

@@ -5,7 +5,7 @@ class fillData():
     """ Cette classe permet de surcharger les données dans la BD
         Il n ' y a que Transporteurs que j'ai reussi à charger
         Le problème se pose au niveau des cles primaire contrainte.
-        Les deux tables transporteurs et voyageurs ont ete chargées
+        Les deux tables transporteurs et voyageurs ont ete
     """
 
     def __init__(self, nom, data, model):
@@ -67,7 +67,8 @@ class fillData():
 
         elif self.nom == "dataCompagnie":
             porteurs = Transporteurs.objects.all()
-            for element in range(len(self.data["name"])):
+            print(porteurs)
+            for element in range(len(self.data["siren"])):
                 New = self.model.objects.create(
                     name = self.data["name"][element],
                     siren = self.data["siren"][element],
