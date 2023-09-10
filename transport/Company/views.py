@@ -74,4 +74,26 @@ def sign_in(request):
 
      return render(request, 'html/sign-in.html')
 
+def sign_up(request):
+     """ la fonction qui permet de se deconnecter """
+
+     return render(request, 'html/sign-up.html')
+
+def team(request):
+
+    return render(request, 'html/team.html')
+
+def blog(request):
+    """ Le blog entretenu par l'entreprise"""
+
+    return render(request, 'html/blog.html')
+
+def blog_single(request):
+
+    return render(request, 'html/blog-single.html')
+
+def privacy(request):
+
+    return render(request, 'html/privacy-policy.html')
+
 
