@@ -129,7 +129,7 @@ a {
 
 a:focus,
 a:hover {
-  color: /*#2e7eed*/;
+  color: #2e7eed;
   text-decoration: none;
 }
 
@@ -138,7 +138,7 @@ a:hover {
 }
 
 .bg-blue {
-  background: /*#2e7eed*/;
+  background: #2e7eed;
 }
 
 .bg-1 {

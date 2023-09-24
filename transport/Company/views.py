@@ -8,7 +8,7 @@ def home(request):
 
     """cette fonction lance la page home du site"""
 
-    return render(request, 'html/base.html')
+    return render(request, 'html/section.html')
 
 def about(request):
     """

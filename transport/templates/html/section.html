@@ -1,7 +1,9 @@
 {% extends 'html/base.html' %} {% block section %}
+
 <!--====================================
 =            Hero Section            =
 =====================================-->
+
 <section class="section gradient-banner">
   <div class="shapes-container">
     <div
@@ -122,9 +124,38 @@
     <div class="rounded shadow p-5 bg-white">
       <div class="row">
         <form action="" method="post">
+          <div class="btn-choice">
+            <label for="aller">
+                
+                <strong>Aller - Simple</strong> 
+                <br>
+                <input type="radio" id="aller" name="trip" />
+            </label>
+            
+            <label for="retour">
+                
+                <strong>Aller - Retour</strong> 
+                <br>
+                <input type="radio" id="retour" name="trip" />
+            </label>
+                
+          </div>
+         
+
           <input type="text" placeholder="Ville de départ" />
           <input type="text" placeholder="Ville arrivée" />
-          <input type="datetime" placeholder="Date du depart" />
+
+          <label for="cars">Passagers </label>
+          <select id="cars" width=300 style="width: 350px">
+            <option value='blue'>Blue</option>
+            <option value='green'>Green</option>
+            <option value='red'>Red</option>
+            <option value='yellow'>Yellow</option>
+            <option value='orange'>Orange</option>
+        </select>
+          <input type="datetime-local" value="2017-06-01T12:20" />
+
+          <button type="submit">Chercher</button>
         </form>
       </div>
     </div>
