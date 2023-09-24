@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+
 # Create your views here.
 
 
@@ -7,7 +8,7 @@ def home(request):
 
     """cette fonction lance la page home du site"""
 
-    return render(request, 'html/section.html')
+    return render(request, 'html/base.html')
 
 def about(request):
     """

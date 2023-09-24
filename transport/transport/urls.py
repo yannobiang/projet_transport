@@ -38,5 +38,6 @@ urlpatterns = [
     path('blog-single/', blog_single, name='blog_single'),
     path('team/', team, name='team'),
     path('privacy-policy/', privacy, name='privacy'),
+    
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

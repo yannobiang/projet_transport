@@ -1,4 +1,4 @@
-{% extends "html/base.html" %} {% block content %}
+{% extends 'html/base.html' %} {% block section %}
 <!--====================================
 =            Hero Section            =
 =====================================-->
@@ -121,36 +121,11 @@
   <div class="container">
     <div class="rounded shadow p-5 bg-white">
       <div class="row">
-        <div class="col-lg-4 col-md-6 mt-5 mt-md-0 text-center">
-          <!--Debut de la 1er modification choix itineraire -->
-          <label class="mt-4 text-capitalize h5" for="aller"
-            >Aller - simple</label
-          >
-          <input type="radio" id="aller" name="itineraire" />
-
-          <label class="mt-4 text-capitalize h5" for="retour"
-            >Aller - retour</label
-          >
-          <input type="radio" id="retour" name="itineraire" />
-        </div>
-        <!--Fin de la 1er modification ajout de radio-->
-        <div class="col-lg-4 col-md-6 mt-5 mt-md-0 text-center">
-          <!--Ajout de la date de voyage -->
-          <input type="date" name="dateTravel" />
-          <p class="regular text-muted">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam
-            non, recusandae tempore ipsam dignissimos molestias.
-          </p>
-          <!--Fin ajout de la date de voyage-->
-        </div>
-        <div class="col-lg-4 col-md-12 mt-5 mt-lg-0 text-center">
-          <i class="ti-thought text-primary h1"></i>
-          <h3 class="mt-4 text-capitalize h5">creative content</h3>
-          <p class="regular text-muted">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam
-            non, recusandae tempore ipsam dignissimos molestias.
-          </p>
-        </div>
+        <form action="" method="post">
+          <input type="text" placeholder="Ville de départ" />
+          <input type="text" placeholder="Ville arrivée" />
+          <input type="datetime" placeholder="Date du depart" />
+        </form>
       </div>
     </div>
   </div>
