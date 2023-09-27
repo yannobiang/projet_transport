@@ -145,13 +145,15 @@
           <input type="text" placeholder="Ville de départ" />
           <input type="text" placeholder="Ville arrivée" />
 
-          <select id="cars" width=300 style="width: 350px">
-            <option value='blue'>Blue</option>
-            <option value='green'>Green</option>
-            <option value='red'>Red</option>
-            <option value='yellow'>Yellow</option>
-            <option value='orange'>Orange</option>
-        </select>
+          <div class="dropdown">
+            
+            <div class="dropbtn icon">Passager</div>
+            <div class="dropdown-content">
+            <div class="adulte">Adulte(s)</div>
+            <div class="enfant">Enfant(s)</div>
+            <div class="bagage">Bagage(s)</div>
+            </div>
+          </div>
           <input type="datetime-local" value="2017-06-01T12:20" />
 
           <button type="submit">Chercher</button>
