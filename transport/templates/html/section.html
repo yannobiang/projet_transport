@@ -142,21 +142,46 @@
           </div>
          
 
-          <input type="text" placeholder="Ville de départ" />
-          <input type="text" placeholder="Ville arrivée" />
+          <input class="im-1" type="text" placeholder="Ville de départ" />
+          <input class="im-1" type="text" placeholder="Ville arrivée" />
 
           <div class="dropdown">
             
-            <div class="dropbtn icon">Passager</div>
+            <div class="dropbtn icon">
+                <img class="drop-down" src="static/images/down-arrow.png" alt="">
+            </div>
             <div class="dropdown-content">
-            <div class="adulte">Adulte(s)</div>
-            <div class="enfant">Enfant(s)</div>
-            <div class="bagage">Bagage(s)</div>
+                
+            <div class="adulte">
+                <div>Adulte(s)</div>
+                <div class="add-info-1">
+                    <img class="adl-1 adl-btn-1 btn-more-adl" src="static/images/plus.png" alt="">
+                    <input class="adl-1" id="nbr-adl" type="text">
+                    <img class="adl-1 adl-btn-2 btn-manus-adl" src="static/images/moins.png" alt="">
+                </div>
+               
+            </div>
+            <div class="enfant">
+                <div> Enfant(s) </div>
+                <div class="add-info-1">
+                    <img class="adl-1 adl-btn-1 btn-more-enf" src="static/images/plus.png" alt="">
+                    <input class="adl-1" id="nbr-enf" type="text">
+                    <img class="adl-1 adl-btn-2 btn-manus-enf" src="static/images/moins.png" alt="">
+                </div>
+            </div>
+            <div class="bagage">
+                <div>Bagage(s)</div>
+                <div class="add-info-1">
+                    <img class="adl-1 adl-btn-1 btn-more-bg" src="static/images/plus.png" alt="">
+                    <input class="adl-1" id="nbr-bga" type="text">
+                    <img class="adl-1 adl-btn-2 btn-manus-bg" src="static/images/moins.png" alt="">
+                </div> 
+            </div>
             </div>
           </div>
-          <input type="datetime-local" value="2017-06-01T12:20" />
+          <input class="im-1 br-1" type="datetime-local" value="2017-06-01T12:20" />
 
-          <button type="submit">Chercher</button>
+          <button class="im-1" type="submit">Chercher</button>
         </form>
       </div>
     </div>
