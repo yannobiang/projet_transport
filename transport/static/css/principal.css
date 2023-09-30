@@ -120,11 +120,23 @@ margin: 0 5% 2% 0;
   border:  rgb(0, 166, 255) solid;
 }
 
-.nbr-adl {
-  border:  rgba(128, 128, 128, 0.767) solid;
+.nbr-adl .nbr-enf .nbr-bga {
+  border: 1px rgba(128, 128, 128, 0.767) solid;
 }
 .nbr-adl:hover {
-  border:   rgb(0, 166, 255) solid;
+  border: 1px  rgb(0, 166, 255) solid;
+}
+
+.nbr-enf:hover {
+  border: 1px  rgb(0, 166, 255) solid;
+}
+
+.nbr-bga:hover {
+  border: 1px  rgb(0, 166, 255) solid;
+}
+
+.btn-search {
+  margin: 5% 5% 5% 5% !important;
 }
 
 .drop-down {
