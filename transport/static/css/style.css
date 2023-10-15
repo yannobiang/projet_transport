@@ -57,6 +57,7 @@ cite {
   font-size: 16px;
 }
 
+
 ul.app-badge {
   margin-bottom: 60px;
 }
@@ -147,7 +148,7 @@ a:hover {
 }
 
 .bg-coming-soon {
-  background: url(../images/background/comming-soon.jpg) fixed no-repeat;
+  /*background: url(../images/background/comming-soon.jpg) fixed no-repeat;*/
   background-size: cover;
   background-position: bottom;
 }
@@ -171,6 +172,11 @@ a:hover {
 @media (max-width: 480px) {
   .section-title p {
     width: 100%;
+  }
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
   }
 }
 
@@ -222,6 +228,11 @@ a:hover {
     line-height: 80px;
     font-size: 22px;
   }
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 .video .video-box a iframe {
   width: 100%;
@@ -261,6 +272,11 @@ textarea.form-control.main {
     margin-left: 0;
     margin-bottom: 30px;
   }
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 
 .right {
@@ -272,6 +288,11 @@ textarea.form-control.main {
 @media (max-width: 768px) {
   .right img {
     margin-left: 0;
+  }
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
   }
 }
 
@@ -387,6 +408,12 @@ button:focus,
   .main-nav .navbar-nav .nav-item .nav-link {
     line-height: 25px;
   }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 .main-nav .navbar-nav .nav-item .nav-link span i {
   font-size: 11px;
@@ -407,6 +434,13 @@ button:focus,
   .main-nav .navbar-nav .nav-item.active .nav-link:before {
     display: none;
   }
+
+  .trip-box-1 {
+  display: flex !important;
+  flex-direction: column;
+    margin: 3% 3% 3% 3%;
+}
+
 }
 .main-nav .dropdown {
   position: relative;
@@ -427,6 +461,12 @@ button:focus,
     position: relative;
     text-align: center;
   }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 .main-nav .dropdown .dropdown-menu {
   border-radius: 0;
@@ -445,6 +485,12 @@ button:focus,
     float: left !important;
     width: 100%;
     margin: 0;
+  }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
   }
 }
 .main-nav .dropdown .dropdown-menu .dropdown-item {
@@ -477,6 +523,7 @@ button:focus,
     color: #777;
     transform: translateY(0px);
   }
+
 }
 
 .dropdown-submenu.active > a,
@@ -525,6 +572,12 @@ button:focus,
   .footer-main {
     padding: 50px 0;
   }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 .footer-main .block img {
   margin-bottom: 20px;
@@ -546,6 +599,12 @@ button:focus,
 @media (max-width: 768px) {
   .footer-main .block {
     margin-bottom: 40px;
+  }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
   }
 }
 .footer-main .block-2 h6 {
@@ -582,6 +641,12 @@ button:focus,
 @media (max-width: 480px) {
   .footer-classic ul.social-icons li {
     margin-bottom: 10px;
+  }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
   }
 }
 .footer-classic ul.social-icons li a {
@@ -627,6 +692,12 @@ button:focus,
     height: 35px;
     line-height: 35px;
   }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
 }
 
 .call-to-action-app {
@@ -648,6 +719,14 @@ button:focus,
     margin-left: 0;
     margin-bottom: 10px;
   }
+
+  .trip-box-1 {
+    display: flex !important;
+    flex-direction: column;
+    margin: 3% 3% 3% 3%;
+  }
+
+
 }
 .call-to-action-app ul li:first-child {
   margin-left: 0;
@@ -1021,10 +1100,6 @@ button:focus,
   width: 200%;
   height: 200%;
   border-radius: 50%;
-  background-image: linear-gradient(rgba(45, 246, 252, 0.52), rgba(19, 117, 93, 0.73)),
-  url('../images/image_collante.jpg');
-  background-repeat: no-repeat;
-  
 }
 
 .pull-top {
@@ -1895,3 +1970,10 @@ hr {
   }
 }
 /*# sourceMappingURL=style.css.map */
+
+/* j'ai modifié .trip-box-1 {
+  display: flex !important;
+  flex-direction: row;
+}
+
+dans quasiment tous les medias */

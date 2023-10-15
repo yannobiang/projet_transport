@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+import datetime
 
 # Create your views here.
 
@@ -7,8 +7,9 @@ from django.shortcuts import render
 def home(request):
 
     """cette fonction lance la page home du site"""
-
-    return render(request, 'html/section.html')
+    current = datetime.date.today().strftime("%Y-%m-%d")
+    
+    return render(request, 'html/section.html', { 'current' : current})
 
 def about(request):
     """
