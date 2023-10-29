@@ -1,5 +1,7 @@
 from django.shortcuts import render
 import datetime
+from .models import Voyages
+import json
 
 # Create your views here.
 
@@ -8,8 +10,17 @@ def home(request):
 
     """cette fonction lance la page home du site"""
     current = datetime.date.today().strftime("%Y-%m-%d")
-    
-    return render(request, 'html/section.html', { 'current' : current})
+    mydata = list(Voyages.objects.all().values())
+    list_ville_depart = [mydata[i]['ville_depart'] for i in range(1, 16)]
+    list_ville_arrivee = [mydata[j]['ville_arrivee'] for j in range(1, 16)]
+
+    context = {
+        'list_ville_depart': list_ville_depart,
+        'list_ville_arrivee':list_ville_arrivee,
+        'current' : current
+    }
+    print(context)
+    return render(request, 'html/section.html', context=context)
 
 def about(request):
     """

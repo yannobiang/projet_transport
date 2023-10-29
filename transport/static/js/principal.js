@@ -108,6 +108,12 @@ dropDown.addEventListener("click", () => {
       } else if (nb_bga.value == 1) {
         passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
       }
+    } else {
+      if (nb_bga.value > 1) {
+        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
+      } else if (nb_bga.value == 1) {
+        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
+      }
     }
   } else if (nb_adl.value == 1) {
     passager_fill.innerHTML = nb_adl.value + " " + "Adulte";
@@ -121,6 +127,12 @@ dropDown.addEventListener("click", () => {
       }
     } else if (nb_enf.value == 1) {
       passager_fill.innerHTML += ", " + nb_enf.value + " " + "Enfant";
+      if (nb_bga.value > 1) {
+        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
+      } else if (nb_bga.value == 1) {
+        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
+      }
+    } else {
       if (nb_bga.value > 1) {
         passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
       } else if (nb_bga.value == 1) {

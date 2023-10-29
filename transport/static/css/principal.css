@@ -7,7 +7,7 @@ input[type=radio] {
   width: 100%;
   height: 2em;
   background-color: #3e8e41;
-  accent-color: #3e8e41;
+  accent-color: #00aff5;
   /*margin-top: 19px;*/
 }
 
@@ -34,7 +34,7 @@ margin: 0 5% 2% 0;
 
   border: 1px grey solid;
   width: 165px;
-  height: 56px;
+  height: 53%;
   font-size: 16px;
   padding-left: 8px;
   background: transparent;
@@ -48,15 +48,10 @@ margin: 0 5% 2% 0;
 
 .icon {
   
-  height: 56px;
+  height: 53%;
   width: 290px;
   
   
-}
-.br-1 {
-  font-size: large;
-  font-weight: bold;
-
 }
 
 .the-trip-box-1 {
@@ -108,12 +103,13 @@ margin: 0 5% 2% 0;
 .dropbtn {
  
   color: black;
-  padding: 12px;
+  padding: 8px;
   font-size: 82%;
   border: none;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border: 1px grey solid;
 }
 
@@ -222,7 +218,7 @@ margin: 0 5% 2% 0;
   margin: 0;
   background-color: #00aff5;
   width: 168px;
-  height: 56px;
+  height: 53%;
   color: white;
   border-radius: 0 25px 25px 0;
   margin-right: 42px;
@@ -266,6 +262,8 @@ margin: 0 5% 2% 0;
 
 .mystyle {
   display:block;
+  position: absolute;
+  top: 73%;
 }
 
 
@@ -281,15 +279,28 @@ margin: 0 5% 2% 0;
   
 }
 
-/*
-.dropdown:hover .dropdown-content {
-  display: block;
+.box-depart {
+  
+    position: absolute;
+    top: 443px;
+    margin-left: 496px;
+    padding: 17px;
+    background-color: white;
+    width: 242px;
+
 }
-*/
-/*
-.dropdown:hover .dropbtn {
-  background-color: #3e8e41;
+
+.box-arrivee {
+  
+  
+    position: absolute;
+    top: 424px;
+    margin-left: 750px;
+    width: 250px;
+    background-color: white;
+    padding: 27px;
+
+
 }
-*/
 
 

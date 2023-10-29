@@ -5,7 +5,6 @@
 =====================================-->
 
 <section>
-  
   <form class="container-section-1" action="" method="post">
     {% csrf_token %}
     <div class="the-trip-box-1">
@@ -15,40 +14,36 @@
           <br />
           <input type="radio" id="aller" name="trip" />
         </label>
-    
+
         <label for="retour">
           <strong>Aller - Retour</strong>
           <br />
           <input type="radio" id="retour" name="trip" />
         </label>
       </div>
-    
+
       <input
-      class="im-1 city"
-      id="depart"
-      type="text"
-      name="depart"
-      placeholder="Ville de départ"
+        class="im-1 city"
+        id="depart"
+        type="text"
+        name="depart"
+        placeholder="Ville de départ"
       />
       <input
         class="im-1 city"
+        id="box-arrivee"
         type="text"
         name="destination"
         placeholder="Ville arrivée"
       />
-    
-      <div class="dropbtn icon">
+      <span class="dropbtn icon">
         <div id="btn-passager">1 Adulte</div>
-        <img
-          class="drop-down"
-          src="static/images/down-arrow.png"
-          alt=""
-        />
-      </div>
-      <div class="dropdown-content">
+        <img class="drop-down" src="static/images/down-arrow.png" alt="" />
+      </span>
+      <span class="dropdown-content">
         <div class="adulte">
           <div>Adulte(s)</div>
-          <div class="add-info-1">
+          <span class="add-info-1">
             <img
               class="adl-1 adl-btn-1 btn-more-adl"
               src="static/images/plus.png"
@@ -60,11 +55,11 @@
               src="static/images/moins.png"
               alt=""
             />
-          </div>
+          </span>
         </div>
         <div class="enfant">
           <div>Enfant(s)</div>
-          <div class="add-info-1">
+          <span class="add-info-1">
             <img
               class="adl-1 adl-btn-1 btn-more-enf"
               src="static/images/plus.png"
@@ -76,7 +71,7 @@
               src="static/images/moins.png"
               alt=""
             />
-          </div>
+          </span>
         </div>
         <div class="bagage">
           <div>Bagage(s)</div>
@@ -94,23 +89,30 @@
             />
           </div>
         </div>
-      </div>
-    
-    
-    <input
-      class="im-1 br-1"
-      type="date"
-      name="date"
-      id="date-depart"
-      value="{{ current }}"
-    />
-    <input
-      class="im-1 br-1 date-retour"
-      type="date"
-      name="date"
-      value="{{ current }}"
-    />
-    <button class="btn-search" type="submit">Chercher</button>
+      </span>
+
+      <input
+        class="im-1"
+        type="date"
+        name="date"
+        id="date-depart"
+        value="{{ current }}"
+      />
+      <input
+        class="im-1 date-retour"
+        type="date"
+        name="date"
+        value="{{ current }}"
+      />
+      <button class="btn-search" type="submit">Chercher</button>
+    </div>
+    <div id="box-depart">
+      {% for dep in list_ville_depart %} {{ dep }} <br />
+      {% endfor %}
+    </div>
+    <div id="box-arrivee">
+      {% for arv in list_ville_arrivee %} {{ arv }} <br />
+      {% endfor %}
     </div>
   </form>
 </section>
@@ -249,6 +251,39 @@
 </section>
 <!--====  End of Testimonial  ====-->
 
+{% endblock %} {% block scripts %}
+<script>
+  /* construction de proposition de voyage */
 
+  const box_arrivee = document.getElementById("box-arrivee");
+  const box_depart = document.getElementById("box-depart");
 
-{% endblock %}
+  const depart = "{{list_ville_depart}}";
+  const arrivee = "{{list_ville_arrivee}}";
+
+  const rdepart = JSON.parse(JSON.stringify(depart).replace(/&#x27;/g, "'"));
+  const rarrivee = JSON.parse(JSON.stringify(arrivee).replace(/&#x27;/g, "'"));
+
+  const input_d = document.getElementById("depart");
+  const input_a = document.getElementById("box-arrivee");
+  console.log(input_d);
+  console.log(input_a);
+
+  let filteredDep = [];
+  let filteredArr = [];
+  input_a.addEventListener("keyup", (e) => {
+    box_arrivee.innerHTML = "";
+    filteredArr = rarrivee.filter((element) =>
+      element.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+    console.log(filteredArr);
+  });
+
+  input_d.addEventListener("keyup", (e) => {
+    box_depart.innerHTML = "";
+    filteredDep = rdepart.filter((element) =>
+      element.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+  });
+</script>
+{% endblock scripts%}

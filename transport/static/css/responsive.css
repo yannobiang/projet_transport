@@ -1,0 +1,360 @@
+/* les ecrans lies aux telephone Iphone 7 */
+
+
+@media (max-width: 2800px) and (min-height : 1900px) {
+    
+    .container-section-1 {
+        width: 100%;
+        height: 1530px;
+    }
+    .im-1 {
+        border: 1px grey solid;
+        width: 381px;
+        height: 53%;
+        font-size: 16px;
+        padding-left: 8px;
+        background: transparent;
+        transform: translateY(1px);
+    }
+    .btn-choice {
+        
+        display: flex;
+        justify-content: left;
+        width: 246px;
+        margin-left: 25px;
+    }
+}
+
+
+@media (max-width: 390px) and  (min-height: 844px){
+
+    .btn-choice {
+        
+        display: flex;
+        justify-content: space-around;
+        width: 80%;
+        
+    }
+
+    .the-trip-box-1 {
+        margin-top: -30px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        height: 431px;
+        width: 100%;
+        background-color: white;
+        width: 94%;
+        align-items: center;
+        margin: 4%;
+        bottom: -172px;
+        box-shadow: 12px 8px 8px #77b5fe;
+    }
+
+    .im-1 {
+        border: 1px grey solid;
+        margin: 1% 5% 1% 5%;
+        width: 290px;
+        height: 53%;
+        font-size: 16px;
+        padding-left: 8px;
+        background: transparent;
+        transform: translateY(1px);
+    }
+    #depart {
+        border-radius: unset;
+    }
+    .btn-search {
+        
+        margin: 1% 5% 1% 5%;
+        background-color: #00aff5;
+        width: 293px;
+        height: 53%;
+        color: white;
+        border-radius: 25px 25px 25px 25px;
+        
+    }
+   
+  }
+
+
+
+/* les ecrans lies aux Ipad */
+@media (max-width: 760px) and  (min-height: 1024px){
+
+
+    .btn-choice {
+        
+        display: flex;
+        justify-content: space-around;
+        margin-left: 20px;
+        width: 423px;
+    }
+
+    .the-trip-box-1 {
+        margin-top: -30px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        height: 368px; 
+        
+        background-color: white;
+        width: 82%;
+        align-items: center;
+        margin-left: 11%;
+        bottom: -172px;
+        box-shadow: 12px 8px 8px #77b5fe;
+    }
+
+    .im-1 {
+        border: 1px grey solid;
+        width: 548px;
+        height: 84%;
+        font-size: 16px;
+        padding-left: 8px;
+        background: transparent;
+        transform: translateY(1px);
+        margin: 1% 5% 1% 5%;
+        
+    }
+
+    #depart {
+         border-radius: unset; 
+    }
+
+    .icon {
+        height: 53%;
+        width: 546px;
+    }
+
+    .btn-search {
+
+        margin: 1% 5% 1% 5%;
+        background-color: #00aff5;
+        width: 546px;
+        height: 53%;
+        color: white;
+        border-radius: 25px 25px 25px 25px;
+        
+    }
+   
+}
+
+/* les ecrans lies aux ordinateurs */
+
+@media (max-width: 1440px) and  (min-height: 900px){
+
+    .the-trip-box-1 {
+        margin-top: -30px;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        height: 125px;
+        width: 100%;
+        background-color: white;
+        width: 84%;
+        align-items: center;
+        margin-left: 8%;
+        bottom: -217px;
+        box-shadow: 12px 8px 8px #77b5fe;
+    }
+
+    .btn-choice {
+        margin: 0px;
+        display: flex;
+        align-items: center;
+        width: 28%;
+        justify-content: space-around;
+        margin-left: 10px;
+    }
+
+
+   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

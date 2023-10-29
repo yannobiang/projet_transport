@@ -57,6 +57,7 @@
     <!-- CUSTOM CSS -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet" />
     <link href="{% static 'css/principal.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/responsive.css' %}" rel="stylesheet" />
     <link
       href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css"
       rel="stylesheet"
@@ -334,6 +335,7 @@
     <!-- google map -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAgeuuDfRlweIs7D6uo4wdIHVvJ0LonQ6g"></script>
     <script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+    {% block scripts %} {% endblock scripts %}
 
     <script src="{% static 'js/script.js' %}"></script>
     <script src="{% static 'js/principal.js' %}"></script>
