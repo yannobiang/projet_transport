@@ -6,10 +6,11 @@ input[type=radio] {
   border: 0px;
   width: 100%;
   height: 2em;
-  background-color: #3e8e41;
+  background-color: #00aff5;
   accent-color: #00aff5;
   /*margin-top: 19px;*/
 }
+
 
 
 label{
@@ -18,10 +19,11 @@ margin: 0 5% 2% 0;
 }
 
 .btn-choice {
-  /*margin: 2px;*/
+  
+  width: 40%;
   display: flex;
   justify-content: center;
-  margin-left: 28px;
+  margin-left: 1px;
  
 }
 
@@ -32,14 +34,14 @@ margin: 0 5% 2% 0;
 
 .im-1 {
 
-  border: 1px grey solid;
   width: 165px;
-  height: 53%;
+  height: 100%;
   font-size: 16px;
   padding-left: 8px;
   background: transparent;
   transform: translateY(1px);
-
+  border: none;
+  border-left: 2px solid gray;
 }
 
 .im-1:hover {
@@ -48,7 +50,7 @@ margin: 0 5% 2% 0;
 
 .icon {
   
-  height: 53%;
+  height: 100%;
   width: 290px;
   
   
@@ -61,12 +63,12 @@ margin: 0 5% 2% 0;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 125px;
-  width: 100%;
+  height: 85px;
   background-color: white;
-  width: 65%;
+  width: 70%;
   align-items: center;
-  margin-left: 15%;
+  border-radius: 25px 25px 25px 25px;
+  margin-left: 12%;
   bottom: -291px;
   box-shadow: 12px 8px 8px #77B5FE;
 }
@@ -101,7 +103,6 @@ margin: 0 5% 2% 0;
 }
 
 .dropbtn {
- 
   color: black;
   padding: 8px;
   font-size: 82%;
@@ -110,7 +111,8 @@ margin: 0 5% 2% 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px grey solid;
+  border: none;
+  border-left: 2px solid grey;
 }
 
 .dropbtn:hover {
@@ -214,20 +216,17 @@ margin: 0 5% 2% 0;
 
 
 .btn-search {
-  /*margin: 2% 3% 5% 0% !important;*/
+  border: none;
+  border-left: 2px solid grey;
   margin: 0;
   background-color: #00aff5;
   width: 168px;
-  height: 53%;
+  height: 100%;
   color: white;
   border-radius: 0 25px 25px 0;
-  margin-right: 42px;
   
 }
 
-#depart {
-  border-radius: 25px 0px 0px 25px;
-}
 
 .city {
   text-align: left;
@@ -279,7 +278,7 @@ margin: 0 5% 2% 0;
   
 }
 
-.box-depart {
+#box-depart-3 {
   
     position: absolute;
     top: 443px;
@@ -290,7 +289,7 @@ margin: 0 5% 2% 0;
 
 }
 
-.box-arrivee {
+#box-arrivee {
   
   
     position: absolute;

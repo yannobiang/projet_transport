@@ -38,7 +38,6 @@ function myFunction(event) {
   if ((Rcheck.checked == true) & (Acheck.checked == false)) {
     document.querySelector(".date-retour").style.display = "block";
   } else if ((Rcheck.checked == false) & (Acheck.checked == true)) {
-    console.log("je suis ici");
     document.querySelector(".date-retour").style.display = "none";
   }
 }

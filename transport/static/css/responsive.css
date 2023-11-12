@@ -1,31 +1,5 @@
 /* les ecrans lies aux telephone Iphone 7 */
 
-
-@media (max-width: 2800px) and (min-height : 1900px) {
-    
-    .container-section-1 {
-        width: 100%;
-        height: 1530px;
-    }
-    .im-1 {
-        border: 1px grey solid;
-        width: 381px;
-        height: 53%;
-        font-size: 16px;
-        padding-left: 8px;
-        background: transparent;
-        transform: translateY(1px);
-    }
-    .btn-choice {
-        
-        display: flex;
-        justify-content: left;
-        width: 246px;
-        margin-left: 25px;
-    }
-}
-
-
 @media (max-width: 390px) and  (min-height: 844px){
 
     .btn-choice {
@@ -82,7 +56,7 @@
 
 
 /* les ecrans lies aux Ipad */
-@media (max-width: 760px) and  (min-height: 1024px){
+@media (max-width: 760px) and (min-width: 600px) and (min-height: 1024px){
 
 
     .btn-choice {
@@ -141,12 +115,30 @@
         border-radius: 25px 25px 25px 25px;
         
     }
+
+    #box-depart-3 {
+        background-color: white;
+        margin-left: 101px;
+        top: 349px;
+        position: absolute;
+        width: 546px;
+        padding: 25px;
+    }
+
+    #box-arrivee {
+        background-color: white;
+        width: 546px;
+        position: absolute;
+        top: 412px;
+        margin-left: 102px;
+        padding: 25px;
+    }
    
 }
 
 /* les ecrans lies aux ordinateurs */
 
-@media (max-width: 1440px) and  (min-height: 900px){
+@media (max-width: 1440px) and (min-width: 800px) and (min-height: 900px){
 
     .the-trip-box-1 {
         margin-top: -30px;
@@ -155,15 +147,16 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
-        height: 125px;
-        width: 100%;
+        height: 85px;
         background-color: white;
         width: 84%;
         align-items: center;
+        border-radius: 25px 25px 25px 25px;
         margin-left: 8%;
         bottom: -217px;
         box-shadow: 12px 8px 8px #77b5fe;
     }
+    
 
     .btn-choice {
         margin: 0px;
@@ -174,8 +167,51 @@
         margin-left: 10px;
     }
 
+    #box-depart-3 {
+        position: absolute;
+        background: white;
+        margin-left: 405px;
+        top: 348px;
+        width: 171px;
+        padding: 23px;
+    }
+
+    #box-arrivee {
+        position: absolute;
+        top: 348px;
+        margin-left: 577px;
+        width: 171px;
+        background-color: white;
+        padding: 23px;
+    }
+
 
    
+}
+
+
+@media (max-width: 2800px) and (min-height : 1900px) {
+    
+    .container-section-1 {
+        width: 100%;
+        height: 1530px;
+    }
+    .im-1 {
+        border: 1px grey solid;
+        width: 381px;
+        height: 53%;
+        font-size: 16px;
+        padding-left: 8px;
+        background: transparent;
+        transform: translateY(1px);
+    }
+    .btn-choice {
+        
+        display: flex;
+        justify-content: left;
+        width: 246px;
+        margin-left: 25px;
+    }
 }
 
 
