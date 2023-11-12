@@ -19,7 +19,7 @@ def home(request):
         'list_ville_arrivee':list_ville_arrivee,
         'current' : current
     }
-    print(context)
+    
     return render(request, 'html/section.html', context=context)
 
 def about(request):

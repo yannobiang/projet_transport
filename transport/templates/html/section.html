@@ -106,14 +106,16 @@
       />
       <button class="btn-search" type="submit">Chercher</button>
     </div>
-    <div id="box-depart-3">
-      {% for dep in list_ville_depart %} {{ dep }} <br />
-      {% endfor %}
-    </div>
-    <div id="box-arrivee">
-      {% for arv in list_ville_arrivee %} {{ arv }} <br />
-      {% endfor %}
-    </div>
+    <center>
+      <div id="box-depart-3">
+        {% for dep in list_ville_depart %} {{ dep }} <br />
+        {% endfor %}
+      </div>
+      <div id="box-arrivee">
+        {% for arv in list_ville_arrivee %} {{ arv }} <br />
+        {% endfor %}
+      </div>
+    </center>
   </form>
 </section>
 <!--====  End of Hero Section  ====-->
@@ -271,6 +273,7 @@
 
     return outputArray;
   }
+
   const box_arrivee = document.getElementById("box-arrivee");
   const box_depart = document.getElementById("box-depart-3");
 
@@ -295,7 +298,37 @@
   let arr2 = rarrivee.split("'");
   let arr_arrivee = arr2.filter((e) => e !== "[" && e !== "]" && e !== ", ");
   /* fin de la conversion en array */
+  input_a.addEventListener("mouseover", () => {
+    box_arrivee.style.display = "block";
+    /*=================== ici ==================================*/
 
+    input_a.addEventListener("keyup", (e) => {
+      box_arrivee.innerHTML = "";
+      filteredArr = arr_arrivee.filter((element) =>
+        element.toLowerCase().includes(e.target.value)
+      );
+      console.log(filteredArr);
+      filteredArr_uniq = uniqueArr(filteredArr);
+      console.log(filteredArr_uniq);
+      if (filteredArr_uniq.length == 1) {
+        box_arrivee.innerHTML +=
+          "<b><a>" + filteredArr_uniq[0] + "</a></b></br>";
+      } else if (filteredArr_uniq.length > 1) {
+        console.log("je suis bien ici");
+
+        for (let i = 0; i < filteredArr_uniq.length; i++) {
+          console.log(filteredArr_uniq[i]);
+          box_arrivee.innerHTML +=
+            "<b><a>" + filteredArr_uniq[i] + "</a></b></br>";
+        }
+      } else {
+        box_arrivee.innerHTML = "<b>No results found...</b>";
+      }
+    });
+
+    /* ================= fin ===============================*/
+  });
+  /*
   input_a.addEventListener("keyup", (e) => {
     box_arrivee.innerHTML = "";
     filteredArr = arr_arrivee.filter((element) =>
@@ -305,45 +338,58 @@
     filteredArr_uniq = uniqueArr(filteredArr);
     console.log(filteredArr_uniq);
     if (filteredArr_uniq.length == 1) {
-      box_arrivee.innerHTML += "<b>" + filteredArr_uniq[0] + "</b></br>";
+      box_arrivee.innerHTML += "<b><a>" + filteredArr_uniq[0] + "</a></b></br>";
     } else if (filteredArr_uniq.length > 1) {
       console.log("je suis bien ici");
 
       for (let i = 0; i < filteredArr_uniq.length; i++) {
         console.log(filteredArr_uniq[i]);
-        box_arrivee.innerHTML += "<b>" + filteredArr_uniq[i] + "</b></br>";
+        box_arrivee.innerHTML +=
+          "<b><a>" + filteredArr_uniq[i] + "</a></b></br>";
       }
     } else {
       box_arrivee.innerHTML = "<b>No results found...</b>";
     }
   });
-
-  input_d.addEventListener("keyup", (e) => {
-    box_depart.innerHTML = "";
-    filteredDep = arr_depart.filter((element) =>
-      element.toLowerCase().includes(e.target.value)
-    );
-    console.log(filteredDep);
-    filteredDep_uniq = uniqueArr(filteredDep);
-    console.log(filteredDep_uniq);
-    if (filteredDep_uniq.length == 1) {
-      box_depart.innerHTML += "<b>" + filteredDep_uniq[0] + "</b></br>";
-    } else if (filteredDep_uniq.length > 1) {
-      console.log("je suis bien ici");
-
-      for (let i = 0; i < filteredDep_uniq.length; i++) {
-        console.log(filteredDep_uniq[i]);
-        box_depart.innerHTML += "<b>" + filteredDep_uniq[i] + "</b></br>";
+*/
+  input_d.addEventListener("mouseover", () => {
+    box_depart.style.display = "block";
+    input_d.addEventListener("keyup", (e) => {
+      box_depart.innerHTML = "";
+      filteredDep = arr_depart.filter((element) =>
+        element.toLowerCase().includes(e.target.value)
+      );
+      console.log(filteredDep);
+      filteredDep_uniq = uniqueArr(filteredDep);
+      if (filteredDep_uniq.length == 1) {
+        box_depart.innerHTML +=
+          "<b><a>" + filteredDep_uniq[0] + "</a></b></br>";
+      } else if (filteredDep_uniq.length > 1) {
+        for (let i = 0; i < filteredDep_uniq.length; i++) {
+          console.log(filteredDep_uniq[i]);
+          box_depart.innerHTML +=
+            "<b><a>" + filteredDep_uniq[i] + "</a></b></br>";
+        }
+      } else {
+        box_depart.innerHTML = "<b>No results found...</b>";
       }
-    } else {
-      box_depart.innerHTML = "<b>No results found...</b>";
-    }
+    });
   });
 
-  const popo = document.getElementById("box-depart-3");
-  arr = popo.childNodes;
-  arr[0].addEventListener("click", () => {
-    console.log("Bonjour" + arr[0].innerText);
-  });
+  const linkDep = document.getElementById("box-depart-3");
+  arr0 = linkDep.childNodes;
+  for (let i = 0; i < arr0.length; i++) {
+    arr0[i].addEventListener("click", (e) => {
+      input_d.innerHTML = arr0[i].innerText;
+    });
+  }
+
+  const linkArr = document.getElementById("box-arrivee");
+  arr1 = linkArr.childNodes;
+  for (let i = 0; i < arr1.length; i++) {
+    arr1[i].addEventListener("click", (e) => {
+      input_a.innerHTML = arr1[i].innerText;
+    });
+  }
 </script>
 {% endblock scripts%}

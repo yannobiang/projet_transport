@@ -279,7 +279,7 @@ margin: 0 5% 2% 0;
 }
 
 #box-depart-3 {
-  
+    display: none;
     position: absolute;
     top: 443px;
     margin-left: 496px;
@@ -291,7 +291,7 @@ margin: 0 5% 2% 0;
 
 #box-arrivee {
   
-  
+    display: none;
     position: absolute;
     top: 424px;
     margin-left: 750px;

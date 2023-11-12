@@ -30,14 +30,14 @@ const mystyle = document.querySelector(".mystyle");
 let Rcheck = document.getElementById("retour");
 let Acheck = document.getElementById("aller");
 const dateretour = document.querySelector(".date-retour");
-const dateretour2 = document.querySelector(".date-retour2");
+/*const dateretour2 = document.querySelector(".date-retour2");*/
 
 /* les fonctions utilisees par le proramme */
 
 function myFunction(event) {
-  if ((Rcheck.checked == true) & (Acheck.checked == false)) {
+  if (Rcheck.checked == true && Acheck.checked == false) {
     document.querySelector(".date-retour").style.display = "block";
-  } else if ((Rcheck.checked == false) & (Acheck.checked == true)) {
+  } else {
     document.querySelector(".date-retour").style.display = "none";
   }
 }
