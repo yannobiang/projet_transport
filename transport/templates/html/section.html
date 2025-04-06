@@ -106,6 +106,7 @@
       />
       <button class="btn-search" type="submit">Chercher</button>
     </div>
+    <!--==================  box depart ====================
     <center>
       <div id="box-depart-3">
         {% for dep in list_ville_depart %} {{ dep }} <br />
@@ -116,6 +117,7 @@
         {% endfor %}
       </div>
     </center>
+    -->
   </form>
 </section>
 <!--====  End of Hero Section  ====-->
@@ -273,7 +275,7 @@
 
     return outputArray;
   }
-
+/*
   const box_arrivee = document.getElementById("box-arrivee");
   const box_depart = document.getElementById("box-depart-3");
 
@@ -292,16 +294,18 @@
   let filteredArr = [];
 
   /* change string to array for use .filter */
+  /*
   let arr = rdepart.split("'");
   let arr_depart = arr.filter((e) => e !== "[" && e !== "]" && e !== ", ");
 
   let arr2 = rarrivee.split("'");
   let arr_arrivee = arr2.filter((e) => e !== "[" && e !== "]" && e !== ", ");
   /* fin de la conversion en array */
+  /*
   input_a.addEventListener("mouseover", () => {
     box_arrivee.style.display = "block";
     /*=================== ici ==================================*/
-
+/*
     input_a.addEventListener("keyup", (e) => {
       box_arrivee.innerHTML = "";
       filteredArr = arr_arrivee.filter((element) =>
@@ -327,8 +331,8 @@
     });
 
     /* ================= fin ===============================*/
-  });
-  /*
+  /*});
+  
   input_a.addEventListener("keyup", (e) => {
     box_arrivee.innerHTML = "";
     filteredArr = arr_arrivee.filter((element) =>
@@ -352,6 +356,7 @@
     }
   });
 */
+/*
   input_d.addEventListener("mouseover", () => {
     box_depart.style.display = "block";
     input_d.addEventListener("keyup", (e) => {
@@ -391,5 +396,6 @@
       input_a.innerHTML = arr1[i].innerText;
     });
   }
+  */
 </script>
 {% endblock scripts%}

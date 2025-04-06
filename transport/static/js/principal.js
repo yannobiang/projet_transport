@@ -30,17 +30,26 @@ const mystyle = document.querySelector(".mystyle");
 let Rcheck = document.getElementById("retour");
 let Acheck = document.getElementById("aller");
 const dateretour = document.querySelector(".date-retour");
+
 /*const dateretour2 = document.querySelector(".date-retour2");*/
 
 /* les fonctions utilisees par le proramme */
 
-function myFunction(event) {
-  if (Rcheck.checked == true && Acheck.checked == false) {
-    document.querySelector(".date-retour").style.display = "block";
-  } else {
-    document.querySelector(".date-retour").style.display = "none";
+/* ajout de la possibilite de la date de retour */
+
+Acheck.addEventListener('click', () => {
+  if(Acheck.checked == true){ 
+    console.log("aller checked");
+    document.querySelector(".date-retour").style.display = "none"}
   }
-}
+);
+
+Rcheck.addEventListener('click', () => {
+  if(Rcheck.checked == true){ 
+    console.log("retour checked");
+    document.querySelector(".date-retour").style.display = "block"}
+  }
+);
 /* modification du compte nombre des adultes */
 
 btn_adl_more.addEventListener("click", () => {
@@ -87,6 +96,7 @@ btn_bg_manus.addEventListener("click", () => {
     nb_bga.value = 0;
   }
 });
+
 
 dropDown.addEventListener("click", () => {
   dropDowncontent.classList.toggle("mystyle");
@@ -141,6 +151,6 @@ dropDown.addEventListener("click", () => {
   }
 });
 
-/* ajout de la possibilite de la date de retour */
 
-Rcheck.addEventListener("change", myFunction);
+
+
