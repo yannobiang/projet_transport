@@ -37,7 +37,7 @@ const dateretour = document.querySelector(".date-retour");
 
 /* ajout de la possibilite de la date de retour */
 
-Acheck.addEventListener('click', () => {
+Acheck.addEventListener('change', () => {
   if(Acheck.checked == true){ 
     console.log("aller checked");
     document.querySelector(".date-retour").style.display = "none"}
