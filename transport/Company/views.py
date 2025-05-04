@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 import datetime
 from .models import Voyages
 import json
@@ -13,14 +14,33 @@ def home(request):
     mydata = list(Voyages.objects.all().values())
     list_ville_depart = [mydata[i]['ville_depart'] for i in range(1, 16)]
     list_ville_arrivee = [mydata[j]['ville_arrivee'] for j in range(1, 16)]
+    dte_depart = [mydata[k]['date_depart'] for k in range(1, 16)]
+    dte_arrivee = [mydata[l]['date_arrivee'] for l in range(1, 16)]
 
     context = {
         'list_ville_depart': list_ville_depart,
         'list_ville_arrivee':list_ville_arrivee,
+        'dte_depart': dte_depart,
+        'dte_arrivee': dte_arrivee,
         'current' : current
     }
+    print("les données disponibles en base :", context)
     
-    return render(request, 'html/section.html', context=context)
+    print(f"les données envoyées : {request.POST}")
+    if request.method == 'POST':
+        print('hello')
+        return redirect('name-of-view')
+    else:
+        return render(request, 'html/section.html', context=context)
+    
+def home2(request):
+
+    """cette fonction lance la page home du site"""
+    
+    
+    return render(request, 'html/choix_du_voyage.html')
+
+
 
 def about(request):
     """
