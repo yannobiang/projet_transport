@@ -37,17 +37,20 @@ const dateretour = document.querySelector(".date-retour");
 
 /* ajout de la possibilite de la date de retour */
 
-if(Acheck.checked == true){
-  console.log("aller checked");
+
 Acheck.addEventListener('change', () => {
-  if(Acheck.checked == true){ 
+  if(Acheck.checked === true){ 
     console.log("aller checked");
-    document.querySelector(".date-retour").style.display = "none"}
+    document.querySelector(".date-retour").style.display = "none"
   }
-)};
+    else{
+      console.log("aller unchecked");
+      document.querySelector(".date-retour").style.display = "block"
+    }
+});
 
 Rcheck.addEventListener('click', () => {
-  if(Rcheck.checked == true){ 
+  if(Rcheck.checked === true){ 
     console.log("retour checked");
     document.querySelector(".date-retour").style.display = "block"}
   }

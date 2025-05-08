@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
 import datetime
+from django.utils.timezone import now
 from .models import Voyages
 import json
 
@@ -22,14 +23,15 @@ def home(request):
         'list_ville_arrivee':list_ville_arrivee,
         'dte_depart': dte_depart,
         'dte_arrivee': dte_arrivee,
-        'current' : current
+        'current' : current,
+        'timestamp': now().timestamp()
     }
     print("les données disponibles en base :", context)
     
     print(f"les données envoyées : {request.POST}")
     if request.method == 'POST':
         print('hello')
-        return redirect('name-of-view')
+        return redirect('choix du voyage')
     else:
         return render(request, 'html/section.html', context=context)
     
