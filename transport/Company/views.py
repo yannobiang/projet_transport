@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
-import datetime
-from django.utils.timezone import now
+from datetime import date, datetime, timedelta, time, timezone
+from django.utils.timezone import now, localdate, make_aware
 from .models import Voyages
+from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 # Create your views here.
@@ -11,13 +12,30 @@ import json
 def home(request):
 
     """cette fonction lance la page home du site"""
-    current = datetime.date.today().strftime("%Y-%m-%d")
+    current = date.today().strftime("%Y-%m-%d")
     mydata = list(Voyages.objects.all().values())
     list_ville_depart = [mydata[i]['ville_depart'] for i in range(1, 16)]
     list_ville_arrivee = [mydata[j]['ville_arrivee'] for j in range(1, 16)]
     dte_depart = [mydata[k]['date_depart'] for k in range(1, 16)]
     dte_arrivee = [mydata[l]['date_arrivee'] for l in range(1, 16)]
-
+    # récupération de la date actuelle
+    today = now().date()
+    print("la date actuelle :", today)
+    start = datetime.combine(today - timedelta(days=1), time.min, tzinfo = timezone.utc)
+    end = datetime.combine(today + timedelta(days=1), time.max, tzinfo = timezone.utc)
+    
+    # récupération de la date de demain
+    
+    yesterday = today - timedelta(days=1)
+    print("la date d'hier :", yesterday)
+    tomorrow = today + timedelta(days=1)
+    print("la date de demain :", tomorrow)
+    # filtrage des données
+    result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow)).filter(ville_depart__contains= 'LIBREVILLE').exclude(ville_arrivee='LIBREVILLE').values())
+    """le result est une liste qui content autant de dictionnaire que de voyage
+    chaque dictionnaire contient les informations sur le voyage
+    """
+    # affichage des données
     context = {
         'list_ville_depart': list_ville_depart,
         'list_ville_arrivee':list_ville_arrivee,
@@ -26,12 +44,32 @@ def home(request):
         'current' : current,
         'timestamp': now().timestamp()
     }
-    print("les données disponibles en base :", context)
+    # print("les données disponibles en base :", mydata)
     
     print(f"les données envoyées : {request.POST}")
     if request.method == 'POST':
-        print('hello')
-        return redirect('choix du voyage')
+        dataSend = dict(request.POST)
+        today =  datetime.strptime(dataSend['date'][0], "%Y-%m-%d").date()
+
+        if dataSend['trip'] == "aller":
+
+            yesterday = today - timedelta(days=1)
+            print("la date d'hier :", yesterday)
+            tomorrow = today + timedelta(days=1)
+            print("la date de demain :", tomorrow)
+
+            # filtrage des données
+            result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow)).filter(ville_depart__in=            dataSend['depart']).exclude(ville_arrivee_in=dataSend['depart']).values())
+
+            """le result est une liste qui content autant de dictionnaire que de voyage
+            chaque dictionnaire contient les informations sur le voyage """
+            print("les données filtrées :", result)
+            context={ 'result' : result, 
+                      "nombre_enfants" : dataSend['nbr_enf'][0], 
+                      "nombre_adultes" : dataSend['nbr_adl'][0], 
+                      "nombre_bagages" : dataSend['nbr_bga'][0]
+                      }
+        return redirect('choix du voyage', context = context)
     else:
         return render(request, 'html/section.html', context=context)
     

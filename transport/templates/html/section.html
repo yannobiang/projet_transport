@@ -12,13 +12,13 @@
         <label for="aller">
           <em style="font-size: medium;">Aller-Simple</em>
 
-          <input type="radio" id="aller" name="trip" checked/>
+          <input type="radio" id="aller" name="trip" value = "aller" checked/>
         </label>
 
         <label for="retour">
           <em style="font-size: medium;">Aller-Retour</em>
 
-          <input type="radio" id="retour" name="trip" />
+          <input type="radio" id="retour" name="trip" value = "retour" />
         </label>
       </div>
 
@@ -50,7 +50,7 @@
               src="static/images/plus.png"
               alt=""
             />
-            <input class="adl-1" id="nbr-adl" type="text" value="1" />
+            <input class="adl-1" id="nbr-adl" name="nbr_adl" type="text" value="1" />
             <img
               class="adl-1 adl-btn-2 btn-manus-adl"
               src="static/images/moins.png"
@@ -66,7 +66,7 @@
               src="static/images/plus.png"
               alt=""
             />
-            <input class="adl-1" id="nbr-enf" type="text" value="0" />
+            <input class="adl-1" id="nbr-enf" name="nbr_enf" type="text" value="0" />
             <img
               class="adl-1 adl-btn-2 btn-manus-enf"
               src="static/images/moins.png"
@@ -82,7 +82,7 @@
               src="static/images/plus.png"
               alt=""
             />
-            <input class="adl-1" id="nbr-bga" type="text" value="0" />
+            <input class="adl-1" id="nbr-bga" name="nbr_bga" type="text" value="0" />
             <img
               class="adl-1 adl-btn-2 btn-manus-bg"
               src="static/images/moins.png"
@@ -105,7 +105,7 @@
         class="im-1 date-retour"
         type="date"
         name="date"
-        value="{{ current }}"
+        value=""
       />
       <button class="btn-search" type="submit">Chercher</button>
     </div>

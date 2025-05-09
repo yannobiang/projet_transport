@@ -314,7 +314,7 @@ align-items: anchor-center;
 
 .city {
   text-align: left;
-  border: 0.5em solid white;
+  border-left: 2px solid gray;
     font-size : medium;
     font-style: normal;
   }
