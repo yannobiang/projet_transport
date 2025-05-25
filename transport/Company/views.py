@@ -25,7 +25,6 @@ def home(request):
     
     # affichage des données
    
-
     if request.method == 'POST':
         dataSend = dict(request.POST)
         today =  datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
@@ -61,6 +60,7 @@ def home(request):
             request.session['nombre_adultes'] = dataSend['nbr_adl'][0]
             request.session['nombre_enfants'] = dataSend['nbr_enf'][0]
             request.session['nombre_bagages'] = dataSend['nbr_bga'][0]
+
 
             context = { 'result' : result, 
                        "ville_depart" : dataSend['depart'][0],
