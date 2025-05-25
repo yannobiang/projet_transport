@@ -5,9 +5,15 @@
   <title>Réservation</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background-color: #f9f9f9;
+
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+        padding: 30px;
+        background-color: #f9f9f9;
     }
     h2 {
       color: #333;
@@ -40,30 +46,64 @@
       background-color: #4cae4c;
     }
     #resumeChoix {
-      margin-top: 30px;
-      padding: 20px;
-      background: #e9ffe9;
-      border-left: 5px solid #5cb85c;
-      max-width: 600px;
-      border-radius: 5px;
+    margin-top: 29px;
+    padding: 35px;
+    background: #e9ffe9;
+    border-left: 5px solid #5cb85c;
+    max-width: 600px;
+    width: 36%;
+    border-radius: 5px;
     }
   </style>
 </head>
 <body>
 
   <h2>Réservation de trajet</h2>
-  <form id="reservationForm">
-    <input type="text" id="ville_depart" placeholder="Ville de départ" required>
-    <input type="text" id="ville_arrivee" placeholder="Ville d’arrivée" required>
-    <input type="date" id="date_depart" required>
-    <input type="date" id="date_retour">
-    <input type="number" id="adultes" placeholder="Nombre d’adultes" min="1" required>
-    <input type="number" id="enfants" placeholder="Nombre d’enfants" min="0">
-    <input type="number" id="bagages" placeholder="Nombre de bagages" min="0">
-    <button type="submit">Valider la réservation</button>
-  </form>
+<form id="reservationForm" method="post" action="{% url 'finaliser_reservation' %}">
+    {% csrf_token %}
+    <input type="text" id="ville_depart" name="ville_depart" placeholder="Ville de départ"
+           value="{{ aller.ville_depart }}" required>
 
-  <div id="resumeChoix"></div>
+    <input type="text" id="ville_arrivee" name="ville_arrivee" placeholder="Ville d'arrivée"
+           value="{{ aller.ville_arrivee }}" required>
+
+    <input type="date" id="date_depart" name="date_depart"
+           value="{{ aller.date_arrivee }}" required>
+
+    <input type="date" id="date_depart" name="date_depart"
+           value="{{ aller.date_depart }}" required>
+
+    {% if retour.date_depart %}
+        <input type="date" id="date_retour" name="date_retour"
+               value="{{ retour.date_depart }}" required>
+               
+        <input type="date" id="date_retour" name="date_retour"
+               value="{{ retour.date_arrivee }}" required>
+    {% endif %}
+
+    <input type="number" id="adultes" name="adultes" placeholder="Nombre d’adultes"
+           value="{{ nombre_adultes }}" min="1" required>
+
+    <input type="number" id="enfants" name="enfants" placeholder="Nombre d’enfants"
+           value="{{ nombre_enfants }}" min="0">
+
+    <input type="number" id="bagages" name="bagages" placeholder="Nombre de bagages"
+           value="{{ nombre_bagages }}" min="0">
+
+    <button type="submit">Valider la réservation</button>
+</form>
+
+  <div id="resumeChoix">
+
+    <h3>Trajet aller</h3>
+    <p> Départ : {{ aller.ville_depart }}, le {{ aller.date_depart }} - Retour : {{ aller.ville_arrivee }}, le {{ aller.date_arrivee }}</p>
+
+    {% if retour.ville_depart %}
+    <h3>Trajet retour</h3>
+    <p>Départ : De {{ retour.ville_depart }}, le {{ retour.date_depart }} - Retour : De {{ retour.ville_arrivee }}, le {{ retour.date_arrivee }}</p>
+    {% endif %}
+
+  </div>
 
   <script>
     document.getElementById("reservationForm").addEventListener("submit", function(e) {

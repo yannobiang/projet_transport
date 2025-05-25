@@ -6,7 +6,7 @@
 
 <section>
   <div class="container-section-1">
-    {% csrf_token %}
+   
       <!--====================================
 =            Hero Section            =
 =====================================-->
@@ -33,7 +33,8 @@
 <div class="annonce-wrapper">
   {% for aller in result %}
     {% for retour in result_retour %}
-      <form class="annonce">
+      <form class="annonce" method="post" action="{% url 'infos_personnelles' %}">
+        {% csrf_token %}
         <div class="ligne-haut">Des frais de service seront ajoutés à chaque réservation.</div>
         
         <div class="info-ligne">
@@ -53,8 +54,8 @@
         <div class="prix">
           Prix total : {{ aller.prix_unitaire|floatformat:0|add:retour.prix_unitaire|floatformat:0 }} fcfa
         </div>
-
-        <button class="btn-continu">Continuer</button>
+        <input type="hidden" name="selected_index" value="{{ forloop.parentloop.counter0 }}">
+        <button type="submit" class="btn-continu">Continuer</button>
       </form>
     {% endfor %}
   {% endfor %}
@@ -68,7 +69,8 @@
 {% for voyage in result %}
   <div class="hero-section">
     
-    <form class="search-box">
+    <form class="search-box" method="post" action="{% url 'infos_personnelles' %}">
+      {% csrf_token %}
     <div class="notice">Des frais de service seront ajoutés à chaque réservation.</div>
     
       <div class="result">
@@ -83,8 +85,8 @@
       </div>
       <br>
       <div class="price"><strong>{{ voyage.prix_unitaire|floatformat:0 }} fcfa</strong></div>
-     
-      <button class="continue">Continuer</button>
+      <input type="hidden" name="selected_index" value="{{ forloop.counter0 }}">
+      <button type="submit" class="continue">Continuer</button>
       </div>
     </form>
 
