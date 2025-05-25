@@ -1,2 +1,40 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
-*
+# Byte-compiled / optimized / DLL files
+_pycache_/
+*.py[cod]
+*$py.class
+
+# Django migrations
+/migrations/.pyc
+/migrations/.pyo
+*/migrations/_pycache_/
+/migrations/.py
+
+# SQLite
+*.sqlite3
+
+# Environnements virtuels
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Fichiers de config locaux
+.env
+*.env
+
+# Fichiers de cache
+*.log
+*.pot
+*.pyc
+
+# Node
+node_modules/
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
