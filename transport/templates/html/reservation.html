@@ -86,6 +86,7 @@
     
 
     {% if retour.date_depart %}
+
     <input type="text" id="ville_depart_retour" name="ville_depart_retour" placeholder="Ville de départ retour"
            value="{{ retour.ville_depart }}" required>
     <input type="text" id="ville_arrivee_retour" name="ville_arrivee_retour" placeholder="Ville d'arrivée retour"
@@ -128,7 +129,7 @@
 
   <script>
     document.getElementById("reservationForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+      //e.preventDefault();
 
       const villeDepart = document.getElementById("ville_depart").value;
       const villeArrivee = document.getElementById("ville_arrivee").value;
@@ -148,6 +149,8 @@
       `;
 
       document.getElementById("resumeChoix").innerHTML = resume;
+      // envoi du formulaire
+      document.getElementById("reservationForm").submit();
     });
   </script>
 

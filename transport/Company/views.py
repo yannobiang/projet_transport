@@ -260,6 +260,13 @@ def finaliser_reservation(request):
         date_depart = request.POST.get('date_depart')
         date_retour = request.POST.get('date_retour')
 
+        request.session["ville_depart"] = ville_depart
+        request.session["ville_arrivee"] = ville_arrivee
+        request.session["adultes"] = adultes
+        request.session["enfants"] = enfants
+        request.session["bagages"] = bagages
+        request.session["date_retour"] = date_retour
+
         # Vérification simple (tu peux améliorer ça)
         if not (ville_depart and ville_arrivee and date_depart and adultes):
             return HttpResponse("Informations manquantes", status=400)
@@ -302,6 +309,15 @@ def generate_pdf(request):
         return HttpResponse("Erreur lors de la génération du PDF")
     return response
 
+def resume_reservation(request):
+    
+    if request.method == 'POST':
+        print("resume_reservation POST request", request.POST)
+        for key in request.POST:
+            request.session[key] = request.POST[key]
+        return redirect('resume')  # redirige vers GET
+
+    return render(request, 'html/resume.html')  # rend la page de résumé
 
 def about(request):
     """

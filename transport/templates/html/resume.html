@@ -2,55 +2,68 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Informations personnelles</title>
+  <title>Résumé de la réservation</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 30px;
-      background-color: #f9f9f9;
+      margin: 40px;
     }
-    h2 {
-      color: #333;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      background: #fff;
+    .resume-container {
+      max-width: 600px;
+      margin: auto;
       padding: 20px;
       border-radius: 8px;
+      background-color: #f9f9f9;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      max-width: 600px;
     }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    h2 {
+      text-align: center;
     }
-    button {
-      background-color: #5cb85c;
-      color: white;
+    .info {
+      margin: 28px 0;
+    }
+    .label {
       font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s ease;
     }
-    button:hover {
-      background-color: #4cae4c;
+    .submit-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .submit-btn:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
+  <div class="resume-container">
+    <h2>Résumé de votre réservation</h2>
 
-  <h2>Informations personnelles</h2>
-  <form action="reservation.html" method="get">
-    <input type="text" name="nom" placeholder="Nom" required>
-    <input type="text" name="prenom" placeholder="Prénom" required>
-    <input type="email" name="email" placeholder="Adresse email" required>
-    <input type="tel" name="telephone" placeholder="Téléphone" required>
-    <input type="text" name="adresse" placeholder="Adresse postale">
-    <button type="submit">Continuer vers la réservation</button>
-  </form>
-
+    <div class="info"><span class="label">Nom :</span> {{ request.session.nom }}</div>
+    <div class="info"><span class="label">Prénom :</span> {{ request.session.prenom }}</div>
+    <div class="info"><span class="label">Email :</span> {{ request.session.email }}</div>
+    <div class="info"><span class="label">Téléphone :</span> {{ request.session.telephone }}</div>
+    <div class="info"><span class="label">Ville de départ :</span> {{ request.session.ville_depart }}</div>
+    <div class="info"><span class="label">Ville d'arrivée :</span> {{ request.session.ville_arrivee }}</div>
+    <div class="info"><span class="label">Date de départ :</span> {{ request.session.date_depart }}</div>
+    <div class="info"><span class="label">Nombre d'adultes :</span> {{ request.session.nombre_adultes }}</div>
+    <div class="info"><span class="label">Nombre d'enfants :</span> {{ request.session.nombre_enfants }}</div>
+    <div class="info"><span class="label">Nombre de bagages :</span> {{ request.session.nombre_bagages }}</div>
+    
+   
+    {% if request.session.date_retour %}
+      <div class="info"><span class="label">Date de retour :</span> {{ request.session.date_retour }}</div>
+    {% endif %}
+    
+    <form action="{% url 'finaliser_reservation' %}" method="post">
+      {% csrf_token %}
+      <button class="submit-btn" type="submit">Confirmer la réservation</button>
+    </form>
+  </div>
 </body>
 </html>
