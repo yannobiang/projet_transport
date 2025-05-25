@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,
-indisponible, question, contact, comming_soon, career,
+indisponible, question, contact, comming_soon, career, generate_pdf,
 sign_in, sign_up, blog, blog_single, team, privacy)
 
 from django.conf import settings
@@ -31,6 +31,7 @@ urlpatterns = [
     path("infos/", infos_personnelles, name="infos_personnelles"),
     path("reservation/", reservation, name="reservation"),
     path("finaliser-reservation/", finaliser_reservation, name="finaliser_reservation"),
+    path("pdf-recap/", generate_pdf, name="pdf_recap"),
     path('about/', about, name='about'),
     path('Erreur 404/', indisponible, name='indisponible'),
     path('FAQ/', question, name='question'),

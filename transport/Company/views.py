@@ -5,6 +5,8 @@ from django.utils.timezone import now, localdate, make_aware
 from .models import Voyages
 from .utils import convert, get_weekday, get_month
 from django.core.serializers.json import DjangoJSONEncoder
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 from itertools import zip_longest
 import json
 
@@ -259,33 +261,28 @@ def finaliser_reservation(request):
 
     return redirect("reservation")
 
-"""
-def choix_du_voyage(request):
-    if request.method == 'POST':
-        # Récupérer les données envoyées par le formulaire
-        voyage_aller_id = request.POST.get('voyage_aller_id')
-        voyage_retour_id = request.POST.get('voyage_retour_id', None)
-        prix_aller = request.POST.get('prix_aller')
-        prix_retour = request.POST.get('prix_retour', None)
+def generate_pdf(request):
+    context = {
+        "titre": "Business Plan - Boulangerie au Gabon",
+        "porteur": "Yann Martin OBIANG ENGUIE",
+        "objectif": "Créer une boulangerie équipée avec des matériels importés de Chine, incluant un four et un groupe électrogène.",
+        "equipements": [
+            {"nom": "Four à pain", "prix": "2 000 €"},
+            {"nom": "Groupe électrogène diesel", "prix": "3 500 €"},
+            {"nom": "Pétrin", "prix": "1 000 €"},
+        ],
+        "financement": "Fonds propres + Demande de financement bancaire",
+        "remarques": "Les équipements seront achetés en Chine, ce qui réduit les coûts d’environ 30%."
+    }
 
-        # Ici, tu peux récupérer les objets Voyage correspondants dans la base de données
-        voyage_aller = Voyages.objects.get(id=voyage_aller_id)
-        voyage_retour = None
-        if voyage_retour_id:
-            voyage_retour = Voyages.objects.get(id=voyage_retour_id)
+    template = get_template("recapitulatif_pdf.html")
+    html = template.render(context)
+    response = HttpResponse(content_type="application/pdf")
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse("Erreur lors de la génération du PDF")
+    return response
 
-        context = {
-            'voyage_aller': voyage_aller,
-            'voyage_retour': voyage_retour,
-            'prix_aller': prix_aller,
-            'prix_retour': prix_retour,
-        }
-        
-        return render(request, 'html/confirmation_voyage.html', context)
-
-    # Si la requête n'est pas POST, on peut rediriger ou afficher une autre page
-    return redirect('accueil')  # Exemple : rediriger si pas de POST
-""" 
 
 def about(request):
     """
