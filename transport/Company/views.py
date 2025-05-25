@@ -194,39 +194,58 @@ def reservation(request):
 
     aller = json.loads(request.session.get("selected_aller", "{}"))
     retour = json.loads(request.session.get("selected_retour", "{}"))
+    if request.method == "POST":    
+        print("reservation POST request")
+        aller["nom"] = request.POST.get("nom")
+        aller["prenom"] = request.POST.get("prenom")
+        aller["email"] = request.POST.get("email")
+        aller["telephone"] = request.POST.get("telephone")
+        aller["adresse"] = request.POST.get("adresse")
 
+        retour["nom"] = request.POST.get("nom")
+        retour["prenom"] = request.POST.get("prenom")
+        retour["email"] = request.POST.get("email")
+        retour["telephone"] = request.POST.get("telephone")
+        retour["adresse"] = request.POST.get("adresse")
+
+        # Enregistrement des informations dans la session
+        request.session["nom"] = aller["nom"]
+        request.session["prenom"] = aller["prenom"]
+        request.session["email"] = aller["email"]
+        request.session["telephone"] = aller["telephone"]
     # Formatage de la date dans aller
-    if "date_depart" in aller:
-        try:
-            aller["date_depart"] = datetime.fromisoformat(aller["date_depart"]).strftime("%Y-%m-%d")
-            aller["date_arrivee"] = datetime.fromisoformat(aller["date_arrivee"]).strftime("%Y-%m-%d")
-        except ValueError:
-            pass  # laisser tel quel si déjà formatée
+        if "date_depart" in aller:
+            try:
+                aller["date_depart"] = datetime.fromisoformat(aller["date_depart"]).strftime("%Y-%m-%d")
+                aller["date_arrivee"] = datetime.fromisoformat(aller["date_arrivee"]).strftime("%Y-%m-%d")
+            except ValueError:
+                pass  # laisser tel quel si déjà formatée
 
-    # Formatage de la date dans retour
-    if "date_depart" in retour:
-        try:
-            retour["date_depart"] = datetime.fromisoformat(retour["date_depart"]).strftime("%Y-%m-%d")
-            retour["date_arrivee"] = datetime.fromisoformat(retour["date_arrivee"]).strftime("%Y-%m-%d")
-        except ValueError:
-            pass
+        # Formatage de la date dans retour
+        if "date_depart" in retour:
+            try:
+                retour["date_depart"] = datetime.fromisoformat(retour["date_depart"]).strftime("%Y-%m-%d")
+                retour["date_arrivee"] = datetime.fromisoformat(retour["date_arrivee"]).strftime("%Y-%m-%d")
+            except ValueError:
+                pass
 
-    infos = {
-        "nom": request.session.get("nom"),
-        "prenom": request.session.get("prenom"),
-        "email": request.session.get("email"),
-        "telephone": request.session.get("telephone"),
-        "adresse": request.session.get("adresse"),
-        "aller": aller,
-        "retour": retour,
-        "nombre_adultes": request.session.get("nombre_adultes"),
-        "nombre_enfants": request.session.get("nombre_enfants"),
-        "date_depart": request.session.get("date_depart"),
-        "date_retour": request.session.get("date_retour"),
-        "nombre_bagages": request.session.get("nombre_bagages"),
-    }
+        infos = {
+            "nom": request.session.get("nom"),
+            "prenom": request.session.get("prenom"),
+            "email": request.session.get("email"),
+            "telephone": request.session.get("telephone"),
+            "adresse": request.session.get("adresse"),
+            "aller": aller,
+            "retour": retour,
+            "nombre_adultes": request.session.get("nombre_adultes"),
+            "nombre_enfants": request.session.get("nombre_enfants"),
+            "date_depart": request.session.get("date_depart"),
+            "date_retour": request.session.get("date_retour"),
+            "nombre_bagages": request.session.get("nombre_bagages"),
+        }
 
-    return render(request, "html/reservation.html", infos)
+        return render(request, "html/reservation.html", infos)
+    return redirect('infos_personnelles')
 
 def finaliser_reservation(request):
 
