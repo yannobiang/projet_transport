@@ -43,26 +43,37 @@
 <body>
   <div class="resume-container">
     <h2>Résumé de votre réservation</h2>
+    <p>Veuillez vérifier les informations ci-dessous avant de confirmer votre réservation.</p>
 
-    <div class="info"><span class="label">Nom :</span> {{ request.session.nom }}</div>
-    <div class="info"><span class="label">Prénom :</span> {{ request.session.prenom }}</div>
-    <div class="info"><span class="label">Email :</span> {{ request.session.email }}</div>
-    <div class="info"><span class="label">Téléphone :</span> {{ request.session.telephone }}</div>
-    <div class="info"><span class="label">Ville de départ :</span> {{ request.session.ville_depart }}</div>
-    <div class="info"><span class="label">Ville d'arrivée :</span> {{ request.session.ville_arrivee }}</div>
-    <div class="info"><span class="label">Date de départ :</span> {{ request.session.date_depart }}</div>
-    <div class="info"><span class="label">Nombre d'adultes :</span> {{ request.session.nombre_adultes }}</div>
-    <div class="info"><span class="label">Nombre d'enfants :</span> {{ request.session.nombre_enfants }}</div>
-    <div class="info"><span class="label">Nombre de bagages :</span> {{ request.session.nombre_bagages }}</div>
-    
-   
-    {% if request.session.date_retour %}
-      <div class="info"><span class="label">Date de retour :</span> {{ request.session.date_retour }}</div>
-    {% endif %}
-    
-    <form action="{% url 'finaliser_reservation' %}" method="post">
+    <form action="{% url 'pdf_recap' %}" method="post">
       {% csrf_token %}
-      <button class="submit-btn" type="submit">Confirmer la réservation</button>
+      <div class="resume-container">
+        <h3 style="text-align: center;">Informations du voyage aller</h3>
+        <div class="info"><span class="label">Date de départ :</span> {{ date_depart }}</div>
+        <div class="info"><span class="label">Date d'arrivée :</span> {{ date_arrivee }}</div>
+        <div class="info"><span class="label">Ville de départ :</span> {{ ville_depart }}</div>
+        <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_arrivee }}</div>
+        </div>
+        {% if date_retour_depart is not None %}
+        <div class="resume-container">
+        <h3 style=" text-align: center;"> Informations du voyage retour</h3>
+          <div class="info"><span class="label">Date de retour :</span> {{ date_retour_arrivee }}</div>
+          <div class="info"><span class="label">Date de retour :</span> {{ date_retour_depart }}</div>
+          <div class="info"><span class="label">Ville de départ :</span> {{ ville_arrivee_retour }}</div>
+          <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_depart_retour }}</div>
+        </div>
+        {% endif %}
+    
+        <div class="info"><span class="label">Nombre d'adultes :</span> {{ adultes }}</div>
+        <div class="info"><span class="label">Nombre d'enfants :</span> {{ enfants }}</div>
+        <div class="info"><span class="label">Nombre de bagages :</span> {{ bagages }}</div>
+      </div>
+    
+      <div style="text-align: center; margin-top: 20px;max-width: 645px; 
+      justify-content: center;align-items: center;margin-left: 29%;
+      margin-right: 10%;">
+        <button class="submit-btn" type="submit">Confirmer la réservation</button>
+      </div>
     </form>
   </div>
 </body>

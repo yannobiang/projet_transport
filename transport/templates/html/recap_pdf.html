@@ -1,51 +1,115 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ titre }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            font-size: 14px;
-        }
-        h1 { text-align: center; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        td, th {
-            border: 1px solid #000;
-            padding: 8px;
-        }
-        .section { margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <style>
+ body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    margin: 30px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 10px;
+  }
+
+  th, td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  th {
+    background-color: #f0f0f0;
+  }
+
+  h1, h3 {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .section {
+    margin-top: 20px;
+  }
+
+  .label {
+    font-weight: bold;
+  }
+  
+  </style>
 </head>
 <body>
-    <h1>{{ titre }}</h1>
+
+    <h1>Preuve de la réservation de voyage</h1>
+    <h2>Date : {{ date }} | Heure : {{ heure }}</h2>
     
-    <div class="section"><strong>Porteur de projet :</strong> {{ porteur }}</div>
-    <div class="section"><strong>Objectif :</strong> {{ objectif }}</div>
+    <p><span class="label">Nom du client :</span> {{ Reserveur }}</p>
+    <p><span class="label">Email :</span> {{ email }}</p>
+    <p><span class="label">Téléphone :</span> {{ telephone }}</p>
+    <p><span class="label">Adresse :</span> {{ adresse }}</p>
+    <p><span class="label">Objectif :</span> {{ objectif }}</p>
     
     <div class="section">
-        <strong>Équipements :</strong>
+        <h3>✪ Informations du voyage aller</h3>
         <table>
-            <tr>
-                <th>Nom</th>
-                <th>Prix</th>
-            </tr>
-            {% for item in equipements %}
-            <tr>
-                <td>{{ item.nom }}</td>
-                <td>{{ item.prix }}</td>
-            </tr>
-            {% endfor %}
+          <tr>
+            <th style="width: 25%;">Ville de départ</th>
+            <th style="width: 25%;">Ville d'arrivée</th>
+            <th style="width: 25%;">Date départ</th>
+            <th style="width: 25%;">Date arrivée</th>
+          </tr>
+          <tr>
+            <td>{{ ville_depart }}</td>
+            <td>{{ ville_arrivee }}</td>
+            <td>{{ date_depart }}</td>
+            <td>{{ date_arrivee }}</td>
+          </tr>
         </table>
+      </div>
+    {% if date_retour_depart is not none %}
+    <div class="section">
+      <h3>✪ Informations du voyage retour</h3>
+      <table>
+        <tr>
+          <th>Ville de départ</th><th>Ville d'arrivée</th><th>Date départ</th><th>Date arrivée</th>
+        </tr>
+        <tr>
+          <td>{{ ville_depart_retour }}</td><td>{{ ville_arrivee_retour }}</td><td>{{ date_retour_depart }}</td><td>{{ date_retour_arrivee }}</td>
+        </tr>
+      </table>
+    </div>
+    {% endif %}
+    
+    <div class="section">
+      <h3>👥 Informations des passagers</h3>
+      <table>
+        <tr><th>Adultes</th><th>Enfants</th><th>Bagages</th></tr>
+        <tr><td>{{ nombre_adultes }}</td><td>{{ nombre_enfants }}</td><td>{{ nombre_bagages }}</td></tr>
+      </table>
     </div>
     
-    <div class="section"><strong>Financement :</strong> {{ financement }}</div>
-    <div class="section"><strong>Remarques :</strong> {{ remarques }}</div>
-    <button onclick="window.location.href='/pdf-recap/'">Télécharger le PDF</button>
+    <div class="section">
+      <h3>💼 Équipements</h3>
+      <table>
+        <tr><th>Prix de l'aller</th><th>Prix du retour</th></tr>
+        
+        <tr>
+            <td>{{ prix_aller }} fcfa</td>
+            {% if date_retour_depart is not none %}
+            <td>{{ prix_retour }} fcfa</td>
+            {% else %}
+            <td>None</td>
+            {% endif %}
+        </tr>
+        
+      </table>
+    </div>
+    
+    <div class="fin"><strong>💶 Financement total :</strong> {{ prix_total }} fcfa</div>
+    <div class="rem"><strong>📝 Remarques :</strong> {{ remarques }}</div>
 </body>
 </html>

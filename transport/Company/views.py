@@ -97,10 +97,14 @@ def home(request):
             list_of_retour = [col.upper() for col in dataSend['destination']]
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
-                                         .exclude(ville_arrivee__in=list_of_depart).values()
+                                         .exclude(ville_arrivee__in=list_of_depart)
+                                         .order_by('date_depart')
+                                         .values()
                         )
             result_retour = list(Voyages.objects.filter(date_arrivee__gt= tomorrow)
-                                         .filter(ville_depart__in=list_of_retour).values()
+                                         .filter(ville_depart__in=list_of_retour)
+                                         .order_by('date_depart')
+                                         .values()
                         )
             # filtrage des données
             request.session['results_aller'] = json.dumps(result, default=str) 
@@ -189,13 +193,14 @@ def infos_personnelles(request):
 
     return redirect('home')
 
+
 def reservation(request):
     import json
 
     aller = json.loads(request.session.get("selected_aller", "{}"))
     retour = json.loads(request.session.get("selected_retour", "{}"))
     if request.method == "POST":    
-        print("reservation POST request")
+        print("reservation POST request", request.method)
         aller["nom"] = request.POST.get("nom")
         aller["prenom"] = request.POST.get("prenom")
         aller["email"] = request.POST.get("email")
@@ -213,11 +218,14 @@ def reservation(request):
         request.session["prenom"] = aller["prenom"]
         request.session["email"] = aller["email"]
         request.session["telephone"] = aller["telephone"]
+        request.session["adresse"] = aller["adresse"] 
     # Formatage de la date dans aller
         if "date_depart" in aller:
             try:
                 aller["date_depart"] = datetime.fromisoformat(aller["date_depart"]).strftime("%Y-%m-%d")
                 aller["date_arrivee"] = datetime.fromisoformat(aller["date_arrivee"]).strftime("%Y-%m-%d")
+                request.session['date_arrivee'] = aller["date_arrivee"]
+                request.session['prix_aller'] = aller["prix_unitaire"]
             except ValueError:
                 pass  # laisser tel quel si déjà formatée
 
@@ -226,6 +234,8 @@ def reservation(request):
             try:
                 retour["date_depart"] = datetime.fromisoformat(retour["date_depart"]).strftime("%Y-%m-%d")
                 retour["date_arrivee"] = datetime.fromisoformat(retour["date_arrivee"]).strftime("%Y-%m-%d")
+                request.session['date_arrivee'] = retour["date_arrivee"]
+                request.session['prix_retour'] = retour["prix_unitaire"]
             except ValueError:
                 pass
 
@@ -258,14 +268,28 @@ def finaliser_reservation(request):
         enfants = request.POST.get("enfants")
         bagages = request.POST.get("bagages")
         date_depart = request.POST.get('date_depart')
-        date_retour = request.POST.get('date_retour')
+
+        try :
+            date_retour_depart = request.POST.get('date_retour_depart')
+        except:
+            date_retour_depart = None
 
         request.session["ville_depart"] = ville_depart
         request.session["ville_arrivee"] = ville_arrivee
+        request.session["date_depart"] = date_depart
+        # Enregistrement des informations dans la session
         request.session["adultes"] = adultes
         request.session["enfants"] = enfants
         request.session["bagages"] = bagages
-        request.session["date_retour"] = date_retour
+
+        if date_retour_depart is not None:
+            request.session["date_retour_depart"] = date_retour_depart
+            request.session["ville_arrivee_retour"] = request.POST.get("ville_arrivee_retour")
+            request.session["ville_depart_retour"] = request.POST.get("ville_depart_retour")
+        else:
+            request.session["date_retour_depart"] = None
+            request.session["ville_arrivee_retour"] = None
+            request.session["ville_depart_retour"] = None
 
         # Vérification simple (tu peux améliorer ça)
         if not (ville_depart and ville_arrivee and date_depart and adultes):
@@ -273,35 +297,62 @@ def finaliser_reservation(request):
 
         # Exemple de traitement : tu peux ici enregistrer en base
         reservation_details = {
-            "ville_depart": ville_depart,
-            "ville_arrivee": ville_arrivee,
-            "date_depart": date_depart,
-            "date_retour": date_retour,
-            "adultes": adultes,
-            "enfants": enfants,
-            "bagages": bagages
+            "ville_depart": request.session["ville_depart"],
+            "ville_arrivee": request.session["ville_arrivee"],
+            "date_depart": request.session["date_depart"],
+            "date_arrivee": request.session.get("date_arrivee"),
+            "ville_arrivee_retour": request.session.get("ville_arrivee_retour"),
+            "ville_depart_retour": request.session.get("ville_depart_retour"),
+            "prix_aller": request.session.get("prix_aller", "0 fcfa"),
+            "prix_retour": request.session.get("prix_retour", "0 fcfa"),
+            "prix_total": int(request.session.get("prix_aller", 0)) + int(request.session.get("prix_retour", 0)),
+            # Ajout des informations personnelles
+            "nom": request.session.get("nom"),
+            "prenom": request.session.get("prenom"),
+            "email": request.session.get("email"),
+            "telephone": request.session.get("telephone"),
+            "adresse": request.session.get("adresse"),
+            # Ajout des informations de réservation
+            "date_retour_arrivee": request.session.get("date_retour_arrivee"),
+            "date_retour_depart": request.session.get("date_retour_depart"),
+            "adultes": request.session["adultes"],
+            "enfants": request.session["enfants"],
+            "bagages": request.session["bagages"]
         }
         # Enregistrement dans la session (ou base de données)
         print("finalisation details:", reservation_details)
-        return render(request, "html/resume.html", {"reservation": reservation_details})
+        return render(request, "html/resume.html", reservation_details)
 
     return redirect("reservation")
 
 def generate_pdf(request):
     context = {
-        "titre": "Business Plan - Boulangerie au Gabon",
-        "porteur": "Yann Martin OBIANG ENGUIE",
-        "objectif": "Créer une boulangerie équipée avec des matériels importés de Chine, incluant un four et un groupe électrogène.",
-        "equipements": [
-            {"nom": "Four à pain", "prix": "2 000 €"},
-            {"nom": "Groupe électrogène diesel", "prix": "3 500 €"},
-            {"nom": "Pétrin", "prix": "1 000 €"},
-        ],
-        "financement": "Fonds propres + Demande de financement bancaire",
-        "remarques": "Les équipements seront achetés en Chine, ce qui réduit les coûts d’environ 30%."
+        "titre": "Preuve de la reservatioin de voyage",
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "heure": datetime.now().strftime("%H:%M"),
+        "Reserveur": request.session.get("nom", "Inconnu") + " " + request.session.get("prenom", "Inconnu"),
+        "email": request.session.get("email", "Inconnu"),
+        "telephone": request.session.get("telephone", "Inconnu"),
+        "adresse": request.session.get("adresse", "Inconnue"),
+        "objectif": "Achat d'un voyage à l'interieur du Gabon",
+        "ville_depart": request.session.get("ville_depart", "Inconnu"),
+        "ville_arrivee": request.session.get("ville_arrivee", "Inconnue"),
+        "date_depart": request.session.get("date_depart", "Inconnue"),
+        "date_arrivee": request.session.get("date_arrivee", "Inconnue"),
+        "ville_depart_retour": request.session.get("ville_depart_retour", "Inconnue"),
+        "ville_arrivee_retour": request.session.get("ville_arrivee_retour", "Inconnue"),
+        "date_retour_depart": request.session.get("date_retour_depart", "Inconnue"),
+        "date_retour_arrivee": request.session.get("date_retour_arrivee", "Inconnue"),
+        "nombre_adultes": request.session.get("adultes", "0"),
+        "nombre_enfants": request.session.get("enfants", "0"),
+        "nombre_bagages": request.session.get("bagages", "0"),
+        "prix_aller": request.session.get("prix_aller", "0 fcfa"),
+        "prix_retour": request.session.get("prix_retour", "0 fcfa"),
+        "prix_total": int(request.session.get("prix_aller", 0)) + int(request.session.get("prix_retour", 0)),
+        "remarques": "Le voyage a été réservé avec succès. Merci de votre confiance.",
     }
 
-    template = get_template("recapitulatif_pdf.html")
+    template = get_template("html/recap_pdf.html")
     html = template.render(context)
     response = HttpResponse(content_type="application/pdf")
     pisa_status = pisa.CreatePDF(html, dest=response)
@@ -309,6 +360,7 @@ def generate_pdf(request):
         return HttpResponse("Erreur lors de la génération du PDF")
     return response
 
+"""
 def resume_reservation(request):
     
     if request.method == 'POST':
@@ -318,6 +370,7 @@ def resume_reservation(request):
         return redirect('resume')  # redirige vers GET
 
     return render(request, 'html/resume.html')  # rend la page de résumé
+"""
 
 def about(request):
     """
