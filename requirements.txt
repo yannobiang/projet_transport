@@ -4,3 +4,5 @@ Django>4.0
 pytz==2023.3.post1
 sqlparse==0.4.4
 typing-extensions==4.7.1
+pandas 
+openpyxl
