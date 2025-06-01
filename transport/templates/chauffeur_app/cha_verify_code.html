@@ -1,0 +1,13 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Code de vérification - Chauffeur</title></head>
+<body>
+    <h2>Vérifiez votre identité</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="code" placeholder="Code reçu par mail"><br>
+        <button type="submit">Valider</button>
+    </form>
+</body>
+</html>

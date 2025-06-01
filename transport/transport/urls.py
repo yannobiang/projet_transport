@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,
-indisponible, question, contact, comming_soon, career, generate_pdf,
+indisponible, question, contact, comming_soon, career, generate_pdf, login_chauffeur, verify_chauffeur,
+dashboard_chauffeur, user_login, verify_code, dashboard, tchat_vue,
 sign_in, sign_up, blog, blog_single, team, privacy)
 
 from django.conf import settings
@@ -31,6 +32,16 @@ urlpatterns = [
     path("reservation/", reservation, name="reservation"),
     path("finaliser-reservation/", finaliser_reservation, name="finaliser_reservation"),
     path("pdf-recap/", generate_pdf, name="pdf_recap"),
+
+    path('login/', login_chauffeur, name='login_chauffeur'),
+    path('verify/', verify_chauffeur, name='verify_chauffeur'),
+    path('dashboard/', dashboard_chauffeur, name='dashboard_chauffeur'),
+
+    path('login/', user_login, name='login'),
+    path('verify/', verify_code, name='verify_code'),
+    path('dashboard/', dashboard, name='dashboard'),
+    path('tchat/<int:transporteur_id>/', tchat_vue, name='tchat'),
+
     path('about/', about, name='about'),
     path('Erreur 404/', indisponible, name='indisponible'),
     path('FAQ/', question, name='question'),

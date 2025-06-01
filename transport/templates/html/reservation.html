@@ -77,7 +77,7 @@
            value="{{ aller.ville_arrivee }}" required>
     <div style="display: flex; flex-direction: row; gap: 10px; justify-content: space-between; width: 100%;">
       
-      <input type="date" id="date_depart" name="date_depart"
+      <input type="date" id="date_depart" name="date_arrivee"
       value="{{ aller.date_arrivee }}" required>    
 
     <input type="date" id="date_depart" name="date_depart"
@@ -85,17 +85,19 @@
     </div>
     
 
-    {% if retour.date_depart %}
+    {% if retour %}
 
     <input type="text" id="ville_depart_retour" name="ville_depart_retour" placeholder="Ville de départ retour"
            value="{{ retour.ville_depart }}" required>
     <input type="text" id="ville_arrivee_retour" name="ville_arrivee_retour" placeholder="Ville d'arrivée retour"
            value="{{ retour.ville_arrivee }}" required>
     <div style="display: flex; flex-direction: row; gap: 10px; justify-content: space-between; width: 100%;">
-        <input type="date" id="date_retour" name="date_retour"
+        <input type="date" id="date_retour" name="date_retour_depart"
+                placeholder="Date de retour départ"
                value="{{ retour.date_depart }}" required>
                
-        <input type="date" id="date_retour" name="date_retour"
+        <input type="date" id="date_retour" name="date_retour_arrivee"
+               placeholder="Date de retour"
                value="{{ retour.date_arrivee }}" required>
     </div>
     {% endif %}
@@ -120,9 +122,9 @@
     <h3>Trajet aller</h3>
     <p> Départ : {{ aller.ville_depart }}, le {{ aller.date_depart }} - Retour : {{ aller.ville_arrivee }}, le {{ aller.date_arrivee }}</p>
 
-    {% if retour.ville_depart %}
+    {% if retour %}
     <h3>Trajet retour</h3>
-    <p>Départ : De {{ retour.ville_depart }}, le {{ retour.date_depart }} - Retour : De {{ retour.ville_arrivee }}, le {{ retour.date_arrivee }}</p>
+    <p>Départ : {{ retour.ville_depart }}, le {{ retour.date_depart }} - Retour : {{ retour.ville_arrivee }}, le {{ retour.date_arrivee }}</p>
     {% endif %}
 
   </div>

@@ -1,4 +1,6 @@
 
+# -*- coding: utf-8 -*-
+from datetime import datetime, timedelta
 def convert(date):
     """
     Prend deux timestamps (en secondes) et renvoie une liste [heures, minutes, secondes]
@@ -35,3 +37,11 @@ def get_month(date_obj):
         "12":"déc"
     }
     return mois[str(date_obj)]
+
+def safe_format_iso(date_str):
+    try:
+        if isinstance(date_str, str):
+            return datetime.fromisoformat(date_str).strftime("%Y-%m-%d")
+    except:
+        pass
+    return date_str  # retourne la valeur brute si invalider

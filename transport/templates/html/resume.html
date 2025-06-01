@@ -54,11 +54,11 @@
         <div class="info"><span class="label">Ville de départ :</span> {{ ville_depart }}</div>
         <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_arrivee }}</div>
         </div>
-        {% if date_retour_depart is not None %}
+        {% if date_retour_depart %}
         <div class="resume-container">
         <h3 style=" text-align: center;"> Informations du voyage retour</h3>
           <div class="info"><span class="label">Date de retour :</span> {{ date_retour_arrivee }}</div>
-          <div class="info"><span class="label">Date de retour :</span> {{ date_retour_depart }}</div>
+          <div class="info"><span class="label">Date de depart :</span> {{ date_retour_depart }}</div>
           <div class="info"><span class="label">Ville de départ :</span> {{ ville_arrivee_retour }}</div>
           <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_depart_retour }}</div>
         </div>
