@@ -14,6 +14,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 import random
+from import_excel import FillData
+from .forms import ExcelImportForm
+import os
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+
 
 # Create your views here.
 
@@ -47,7 +53,7 @@ def home(request):
             tomorrow = today + timedelta(days=1)
 
             # filtrage des données
-            list_of_depart = [col.upper() for col in dataSend['depart']]
+            list_of_depart = [col.title() for col in dataSend['depart']]
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
                                          .exclude(ville_arrivee__in=list_of_depart).values()
@@ -94,12 +100,15 @@ def home(request):
             print("la date d'hier :", yesterday)
             tomorrow = today + timedelta(days=1)
             print("la date de demain :", tomorrow)
+            print("la data entre :", dataSend)
 
             
 
             # filtrage des données
-            list_of_depart = [col.upper() for col in dataSend['depart']]
-            list_of_retour = [col.upper() for col in dataSend['destination']]
+            list_of_depart = [col.title() for col in dataSend['depart']]
+            list_of_retour = [col.title() for col in dataSend['destination']]
+
+            
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
                                          .exclude(ville_arrivee__in=list_of_depart)
@@ -111,7 +120,12 @@ def home(request):
                                          .order_by('date_depart')
                                          .values()
                         )
+            if len(result_retour) == 0:
+                return HttpResponse("Aucun voyage retour trouvé pour les critères spécifiés.", status=404)
             # filtrage des données
+            print(">>>>>>> les data de envoi :", result)
+            print(">>>>>>> les data de retour :", result_retour)
+            
             request.session['results_aller'] = json.dumps(result, default=str) 
             request.session['results_retour'] = json.dumps(result_retour, default=str) 
             request.session['date_depart'] = dataSend['date_depart'][0]
@@ -412,6 +426,31 @@ def resume_reservation(request):
 
     return render(request, 'html/resume.html')  # rend la page de résumé
 """
+
+
+@staff_member_required
+def import_excel_view(request):
+    if request.method == "POST":
+        form = ExcelImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES["excel_file"]
+            path = os.path.join("transport", excel_file.name)
+            
+            # Enregistrer le fichier dans transport/
+            with open(path, "wb+") as dest:
+                for chunk in excel_file.chunks():
+                    dest.write(chunk)
+
+            # Exécuter FillData
+            FillData(path).charge()
+
+            messages.success(request, "✅ Importation réussie")
+            return redirect("/admin/")
+    else:
+        form = ExcelImportForm()
+    
+    return render(request, "admin/global_excel_import.html", {"form": form})
+
 # les vues pour les chauffeurs
 
 # ==========================
@@ -484,7 +523,7 @@ def user_login(request):
             )
             request.session['pre_auth_user'] = user.id
             return redirect('verify_code')
-    return render(request, 'user_app/login.html')
+    return render(request, 'user_app/usr_login.html')
 
 def verify_code(request):
     user_id = request.session.get('pre_auth_user')
@@ -494,7 +533,7 @@ def verify_code(request):
             user = VerificationCode.objects.get(user_iduser_id=user_id).user
             login(request, user)
             return redirect('dashboard')
-    return render(request, 'user_app/verify_code.html')
+    return render(request, 'user_app/usr_verify_code.html')
 
 
 # ==========================
@@ -514,8 +553,8 @@ def login_chauffeur(request):
                 defaults={'code': code}
             )
             request.session['pre_auth_chauffeur'] = user.id
-            return redirect('verify_chauffeur')
-    return render(request, 'chauffeur_app/login.html')
+            return redirect('chauffeur_app/verify_chauffeur')
+    return render(request, 'chauffeur_app/cha_login.html')
 
 def verify_chauffeur(request):
     user_id = request.session.get('pre_auth_chauffeur')
@@ -525,7 +564,7 @@ def verify_chauffeur(request):
             user = VerificationCode.objects.get(user_iduser_id=user_id).user
             login(request, user)
             return redirect('dashboard_chauffeur')
-    return render(request, 'chauffeur_app/verify_code.html')
+    return render(request, 'chauffeur_app/cha_verify_code.html')
 
 
 # ==========================
@@ -536,7 +575,7 @@ def verify_chauffeur(request):
 def dashboard(request):
     travels = Voyages.objects.filter(transporteurs__user=request.user)
     total = sum(v.prix_unitaire for v in travels)
-    return render(request, 'user_app/dashboard.html', {
+    return render(request, 'user_app/usr_dashboard.html', {
         'user': request.user,
         'travel_count': travels.count(),
         'total_spent': total
@@ -546,7 +585,7 @@ def dashboard(request):
 def dashboard_chauffeur(request):
     travels = Voyages.objects.filter(transporteurs__user=request.user)
     total = sum(v.prix_unitaire for v in travels)
-    return render(request, 'chauffeur_app/dashboard.html', {
+    return render(request, 'chauffeur_app/cha_dashboard.html', {
         'chauffeur': request.user,
         'travel_count': travels.count(),
         'total_earned': total

@@ -1,14 +1,22 @@
-
+{% load static %}
 <!DOCTYPE html>
-<html>
-<head><title>Connexion Chauffeur</title></head>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion Client</title>
+  <link rel="stylesheet" href="{% static 'css/style_user.css' %}">
+</head>
 <body>
-    <h2>Connexion Chauffeur</h2>
-    <form method="post">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h2>Connexion Client</h2>
+      <form method="post">
         {% csrf_token %}
-        <input type="email" name="email" placeholder="Email"><br>
-        <input type="password" name="password" placeholder="Mot de passe"><br>
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Mot de passe" required><br>
         <button type="submit">Se connecter</button>
-    </form>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  {{ block.super }}
+
+  <div class="card" style="margin-top: 2em;">
+    <h2>Import Excel Global</h2>
+    <a class="button" href="{% url 'import_excel' %}">📥 Importer les données Excel</a>
+  </div>
+{% endblock %}

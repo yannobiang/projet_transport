@@ -29,69 +29,76 @@
     </select>
   </div>
  
-{% if date_retour is not none  %}
-<div class="annonce-wrapper">
-  {% for aller in result %}
-    {% for retour in result_retour %}
-      <form class="annonce" method="post" action="{% url 'infos_personnelles' %}">
-        {% csrf_token %}
-        <div class="ligne-haut">Des frais de service seront ajoutés à chaque réservation.</div>
-        
-        <div class="info-ligne">
-          <div class="bloc">Départ : {{ aller.date_depart }} - {{ aller.ville_depart }}</div>
-          <div class="bloc">Durée : {{ aller.heures }}h{{ aller.minutes }}</div>
-          <div class="bloc">Arrivée : {{ aller.date_arrivee }} - {{ aller.ville_arrivee }}</div>
-        </div>
-
-        <hr>
-
-        <div class="info-ligne">
-          <div class="bloc">Retour : {{ retour.date_depart }} - {{ retour.ville_depart }}</div>
-          <div class="bloc">Durée : {{ retour.heures }}h{{ retour.minutes }}</div>
-          <div class="bloc">Arrivée : {{ retour.date_arrivee }} - {{ retour.ville_arrivee }}</div>
-        </div>
-
-        <div class="prix">
-          Prix total : {{ aller.prix_unitaire|floatformat:0|add:retour.prix_unitaire|floatformat:0 }} fcfa
-        </div>
-        <input type="hidden" name="selected_index" value="{{ forloop.parentloop.counter0 }}">
-        <button type="submit" class="btn-continu">Continuer</button>
-      </form>
-    {% endfor %}
-  {% endfor %}
-</div>
-{% endif %}
-
+  {% if date_retour is not none %}
+  <div class="annonce-wrapper">
+  
+    <div id="results-retour-container">
+      {% for aller in result %}
+        {% for retour in result_retour %}
+          <form class="annonce" method="post" action="{% url 'infos_personnelles' %}">
+            {% csrf_token %}
+            <div class="ligne-haut">Des frais de service seront ajoutés à chaque réservation.</div>
+  
+            <div class="info-ligne">
+              <div class="bloc">Départ : {{ aller.date_depart }} - {{ aller.ville_depart }}</div>
+              <div class="bloc">Durée : {{ aller.heures }}h{{ aller.minutes }}</div>
+              <div class="bloc">Arrivée : {{ aller.date_arrivee }} - {{ aller.ville_arrivee }}</div>
+            </div>
+  
+            <hr>
+  
+            <div class="info-ligne">
+              <div class="bloc">Retour : {{ retour.date_depart }} - {{ retour.ville_depart }}</div>
+              <div class="bloc">Durée : {{ retour.heures }}h{{ retour.minutes }}</div>
+              <div class="bloc">Arrivée : {{ retour.date_arrivee }} - {{ retour.ville_arrivee }}</div>
+            </div>
+  
+            <div class="prix">
+              Prix total : {{ aller.prix_unitaire|floatformat:0|add:retour.prix_unitaire|floatformat:0 }} fcfa
+            </div>
+  
+            <input type="hidden" name="selected_index" value="{{ forloop.parentloop.counter0 }}">
+            <button type="submit" class="btn-continu" style="width: 20%;">Continuer</button>
+          </form>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  
+    <div class="pagination-controls-retour">
+      <button id="prev-retour-btn" disabled>⬅ Précédent</button>
+      <button id="next-retour-btn">Suivant ➡</button>
+    </div>
+  
+  </div>
 <!--====================================
 =            Section Aller simpl       =
 =====================================-->
-{% if date_retour is none %}
-{% for voyage in result %}
-  <div class="hero-section">
-    
-    <form class="search-box" method="post" action="{% url 'infos_personnelles' %}">
-      {% csrf_token %}
-    <div class="notice">Des frais de service seront ajoutés à chaque réservation.</div>
-    
-      <div class="result">
-      <div class="annonce-result">
-       
-        <div>Départ : {{ voyage.date_depart }} - {{ voyage.ville_depart }} </div>
-        <hr>
-        <div>Durée : {{ voyage.heures }} : {{voyage.minutes}}</div>
-        <hr>
-        <div>Arrivée : {{ voyage.date_arrivee }} - {{ voyage.ville_arrivee }}</div>
+{% else %}
+<div class="pagination-wrapper">
+  <div id="results-container">
+    {% for voyage in result %}
+      <form class="search-box" method="post" action="{% url 'infos_personnelles' %}">
+        {% csrf_token %}
+        <div class="notice">Des frais de service seront ajoutés à chaque réservation.</div>
+        <div class="result">
+          <div class="annonce-result">
+            <div>Départ : {{ voyage.date_depart }} - {{ voyage.ville_depart }}</div>
+            <hr>
+            <div>Durée : {{ voyage.heures }} : {{ voyage.minutes }}</div>
+            <hr>
+            <div>Arrivée : {{ voyage.date_arrivee }} - {{ voyage.ville_arrivee }}</div>
+          </div>
+          <div class="price"><strong>{{ voyage.prix_unitaire|floatformat:0 }} fcfa</strong></div>
+          <input type="hidden" name="selected_index" value="{{ forloop.counter0 }}">
+          <button type="submit" class="continue" style="width: 20%;">Continuer</button>
+        </div>
+      </form>
+    {% endfor %}
+  </div>
 
-      </div>
-      <br>
-      <div class="price"><strong>{{ voyage.prix_unitaire|floatformat:0 }} fcfa</strong></div>
-      <input type="hidden" name="selected_index" value="{{ forloop.counter0 }}">
-      <button type="submit" class="continue">Continuer</button>
-      </div>
-    </form>
-
-{% endfor %}
-    </div>
+  <div class="pagination-controls">
+    <button id="prev-btn" disabled> ⬅ Précédent</button>
+    <button id="next-btn">Suivant ➡ </button>
   </div>
 {% endif %}
 

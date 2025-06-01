@@ -38,15 +38,22 @@ const dateretour = document.querySelector(".date-retour");
 /* ajout de la possibilite de la date de retour */
 
 
-Acheck.addEventListener('change', () => {
-  if(Acheck.checked === true){ 
-    console.log("aller checked");
-    document.querySelector(".date-retour").style.display = "none"
+document.addEventListener("DOMContentLoaded", function () {
+  // ton code ici
+  const k = document.getElementById("aller");
+  const retour = document.querySelector(".date-retour");
+
+  if (k && retour) {
+    k.addEventListener("change", function () {
+      if (k.checked === true) {
+        console.log("aller checked");
+        retour.style.display = "block";
+      } else {
+        console.log("aller unchecked");
+        retour.style.display = "none";
+      }
+    });
   }
-    else{
-      console.log("aller unchecked");
-      document.querySelector(".date-retour").style.display = "block"
-    }
 });
 
 Rcheck.addEventListener('click', () => {

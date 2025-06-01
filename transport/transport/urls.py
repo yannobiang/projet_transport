@@ -14,18 +14,23 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,
 indisponible, question, contact, comming_soon, career, generate_pdf, login_chauffeur, verify_chauffeur,
-dashboard_chauffeur, user_login, verify_code, dashboard, tchat_vue,
+dashboard_chauffeur, user_login, verify_code, dashboard, tchat_vue, import_excel_view,
 sign_in, sign_up, blog, blog_single, team, privacy)
+
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+
+    path('admin/import-excel/', import_excel_view, name='import_excel'),
     path('admin/', admin.site.urls),
+
     path('', home, name='home'),
+
     path('page2/', homepage2, name='homepage2'),
     path('page3/', homepage3, name='homepage3'),
     path("infos/", infos_personnelles, name="infos_personnelles"),
@@ -33,11 +38,11 @@ urlpatterns = [
     path("finaliser-reservation/", finaliser_reservation, name="finaliser_reservation"),
     path("pdf-recap/", generate_pdf, name="pdf_recap"),
 
-    path('login/', login_chauffeur, name='login_chauffeur'),
+    path('login-chauffeur/', login_chauffeur, name='login_chauffeur'),
     path('verify/', verify_chauffeur, name='verify_chauffeur'),
     path('dashboard/', dashboard_chauffeur, name='dashboard_chauffeur'),
 
-    path('login/', user_login, name='login'),
+    path('login-user/', user_login, name='login'),
     path('verify/', verify_code, name='verify_code'),
     path('dashboard/', dashboard, name='dashboard'),
     path('tchat/<int:transporteur_id>/', tchat_vue, name='tchat'),
