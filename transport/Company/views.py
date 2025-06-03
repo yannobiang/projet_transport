@@ -120,8 +120,8 @@ def home(request):
                                          .order_by('date_depart')
                                          .values()
                         )
-            if len(result_retour) == 0:
-                return HttpResponse("Aucun voyage retour trouvé pour les critères spécifiés.", status=404)
+            #if len(result_retour) == 0:
+            #   return HttpResponse("Aucun voyage retour trouvé pour les critères spécifiés.", status=404)
             # filtrage des données
             print(">>>>>>> les data de envoi :", result)
             print(">>>>>>> les data de retour :", result_retour)
@@ -204,7 +204,7 @@ def infos_personnelles(request):
 
         selected_aller = result_allers[index]
         selected_retour = result_retours[index] if index < len(result_retours) else {}
-
+        print("<<<<<<<< les données dans infos :", selected_retour)
         request.session["selected_aller"] = json.dumps(selected_aller)
         request.session["selected_retour"] = json.dumps(selected_retour)
 
@@ -213,6 +213,7 @@ def infos_personnelles(request):
     return redirect('home')
 
 def reservation(request):
+
     if request.method == "POST":
         # Champs client
         aller = {
@@ -225,9 +226,9 @@ def reservation(request):
             "ville_arrive": request.POST.get("ville_arrive"),
             "date_depart": request.POST.get("date_depart"),
             "date_arrive": request.POST.get("date_arrive"),
-            "prix_unitaire": request.POST.get("prix_unitaire", "0 fcfa")
+            "prix_unitaire": request.POST.get("prix_unitaire", "0")
         }
-
+        print("je recois les donnee <<<<<<",request.POST.items())
         retour = {
             "ville_depart": request.POST.get("ville_depart_retour"),
             "ville_arrive": request.POST.get("ville_arrive_retour"),
@@ -267,7 +268,7 @@ def reservation(request):
             request.session["ville_arrive_retour"] = retour["ville_arrive"]
             request.session["date_retour"] = retour["date_retour"]
             request.session["date_retour_arrive"] = retour["date_retour_arrive"]
-            request.session["prix_retour"] = request.POST.get("prix_unitaire", "0 fcfa")  # ou valeur dédiée
+            request.session["prix_retour"] = request.POST.get("prix_unitaire", "0")  # ou valeur dédiée
 
         # Dictionnaire pour affichage résumé
         infos = {
@@ -284,11 +285,11 @@ def reservation(request):
             "nombre_adultes": request.session["nombre_adultes"],
             "nombre_enfants": request.session["nombre_enfants"],
             "nombre_bagages": request.session["nombre_bagages"],
-            "ville_depart_retour": request.session.get("ville_depart_retour"),
-            "ville_arrive_retour": request.session.get("ville_arrive_retour"),
-            "date_retour": request.session.get("date_retour"),
-            "date_retour_arrive": request.session.get("date_retour_arrive"),
-            "prix_retour": request.session.get("prix_retour"),
+            "ville_depart_retour": retour["ville_depart_retour"],
+            "ville_arrive_retour": retour["ville_arrive_retour"],
+            "date_retour": retour["date_retour"],
+            "date_retour_arrive": retour["date_retour_arrive"],
+            "prix_retour": request.POST.get("prix_unitaire", "0") ,
         }
 
         print("🟢 Informations de réservation :", infos)

@@ -303,6 +303,9 @@ align-items: anchor-center;
   height: auto;
   background-image: url('../images/theme2.png');
   background-size: cover;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .annonce {
