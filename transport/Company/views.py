@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta, time, timezone
 from django.utils.timezone import now, localdate, make_aware
@@ -53,11 +54,24 @@ def home(request):
             tomorrow = today + timedelta(days=1)
 
             # filtrage des données
+            
             list_of_depart = [col.title() for col in dataSend['depart']]
+            list_of_destination = [col.title() for col in dataSend['destination']]
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
-                                         .exclude(ville_arrivee__in=list_of_depart).values()
+                                         .filter(ville_arrivee__in=list_of_destination)
+                                         .order_by('date_depart')
+                                         .exclude(ville_depart__in=list_of_destination)
+                                         .exclude(ville_arrivee__in=list_of_depart).values(
+                                             "ville_depart",
+                                             "ville_arrivee",
+                                             "date_depart",
+                                             "date_arrivee",
+                                             "prix_unitaire",
+                                             "id"
+                                         )
                         )
+            
             for i in range(len(result)):
                 
                 result[i]['heures'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[0])
@@ -105,6 +119,7 @@ def home(request):
             
 
             # filtrage des données
+            
             list_of_depart = [col.title() for col in dataSend['depart']]
             list_of_retour = [col.title() for col in dataSend['destination']]
 
@@ -112,11 +127,13 @@ def home(request):
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
                                          .exclude(ville_arrivee__in=list_of_depart)
+                                         .filter(ville_arrivee__in=list_of_retour)
                                          .order_by('date_depart')
                                          .values()
                         )
             result_retour = list(Voyages.objects.filter(date_arrivee__gt= tomorrow)
                                          .filter(ville_depart__in=list_of_retour)
+                                         .filter(ville_arrivee__in=list_of_depart)
                                          .order_by('date_depart')
                                          .values()
                         )
@@ -185,116 +202,175 @@ def home(request):
     
 
 def infos_personnelles(request):
-
     import json
+
     if request.method == "POST":
         selected_index = request.POST.get("selected_index")
-        print("selected_index", selected_index)
+        print("selected_index :", selected_index)
 
         if selected_index is None:
             return HttpResponse("Erreur : aucun index sélectionné", status=400)
+
         try:
             index = int(selected_index)
         except ValueError:
             return HttpResponse("Erreur : index non valide", status=400)
 
-        
         result_allers = json.loads(request.session.get("results_aller", "[]"))
         result_retours = json.loads(request.session.get("results_retour", "[]"))
 
+        if index >= len(result_allers):
+            return HttpResponse("Erreur : index hors limite", status=400)
+        print("result_allers :", result_allers)
         selected_aller = result_allers[index]
+        print("selected_aller :", selected_aller)
         selected_retour = result_retours[index] if index < len(result_retours) else {}
-        print("<<<<<<<< les données dans infos :", selected_retour)
-        request.session["selected_aller"] = json.dumps(selected_aller)
-        request.session["selected_retour"] = json.dumps(selected_retour)
+
+        #  Convertir les string en datetime
+        selected_aller["date_depart"] = datetime.fromisoformat(selected_aller["date_depart"]).strftime("%Y-%m-%d")
+        selected_aller["date_arrivee"] = datetime.fromisoformat(selected_aller["date_arrivee"]).strftime("%Y-%m-%d")
+
+        if "date_retour" in selected_retour and "date_retour_arrivee" in selected_retour:
+
+            selected_retour["date_retour"] = datetime.fromisoformat(selected_retour["date_retour"]).strftime("%Y-%m-%d")
+            selected_retour["date_retour_arrivee"] = datetime.fromisoformat(selected_retour["date_retour_arrivee"]).strftime("%Y-%m-%d")
+        else:
+            selected_retour["date_retour"] = None
+            selected_retour["date_retour_arrivee"] = None
+
+        # 🔎 Vérification stricte des champs obligatoires
+        required_fields = ["ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire"]
+        for field in required_fields:
+            if field not in selected_aller or selected_aller[field] in [None, ""]:
+                return HttpResponse(f"Erreur : champ aller manquant ou vide : {field}", status=400)
+
+        # Enregistrement des infos aller dans la session
+        for key in required_fields:
+            request.session[key] = selected_aller[key]
+
+        # ✅ Gestion du retour si existant
+        if all(k in selected_retour for k in ["ville_depart", "ville_arrivee", "date_retour", "date_retour_arrivee"]):
+            request.session["ville_depart_retour"] = selected_retour["ville_depart"]
+            request.session["ville_arrive_retour"] = selected_retour["ville_arrivee"]
+            request.session["date_retour"] = selected_retour["date_retour"]
+            request.session["date_retour_arrivee"] = selected_retour["date_retour_arrivee"]
+            request.session["prix_retour"] = selected_retour.get("prix_unitaire", "0")
+        else:
+            request.session["ville_depart_retour"] = ""
+            request.session["ville_arrive_retour"] = ""
+            request.session["date_retour"] = ""
+            request.session["date_retour_arrive"] = ""
+            request.session["prix_retour"] = ""
+
+        # Pour affichage dans le formulaire
+        request.session["selected_aller"] = json.dumps(selected_aller, default=str)
+        request.session["selected_retour"] = json.dumps(selected_retour, default=str)
 
         return render(request, "html/infos_personnelles.html")
 
-    return redirect('home')
+    return redirect("home")
 
 def reservation(request):
-
     if request.method == "POST":
         # Champs client
+        nom = request.POST.get("nom")
+        prenom = request.POST.get("prenom")
+        email = request.POST.get("email")
+        telephone = request.POST.get("telephone")
+        adresse = request.POST.get("adresse")
+
+        # Champs aller
         aller = {
-            "nom": request.POST.get("nom"),
-            "prenom": request.POST.get("prenom"),
-            "email": request.POST.get("email"),
-            "telephone": request.POST.get("telephone"),
-            "adresse": request.POST.get("adresse"),
-            "ville_depart": request.POST.get("ville_depart"),
-            "ville_arrive": request.POST.get("ville_arrive"),
-            "date_depart": request.POST.get("date_depart"),
-            "date_arrive": request.POST.get("date_arrive"),
-            "prix_unitaire": request.POST.get("prix_unitaire", "0")
+            "ville_depart": request.session.get("ville_depart"),
+            "ville_arrivee": request.session.get("ville_arrivee"),
+            "date_depart": request.session.get("date_depart"),
+            "date_arrivee": request.session.get("date_arrivee"),
+            "prix_unitaire": request.session.get("prix_unitaire")
         }
-        print("je recois les donnee <<<<<<",request.POST.items())
+
+        # Champs retour (facultatif)
         retour = {
-            "ville_depart": request.POST.get("ville_depart_retour"),
-            "ville_arrive": request.POST.get("ville_arrive_retour"),
-            "date_retour": request.POST.get("date_retour"),
-            "date_retour_arrive": request.POST.get("date_retour_arrive")
+            "ville_depart": request.session.get("ville_depart_retour"),
+            "ville_arrivee": request.session.get("ville_arrivee_retour"),
+            "date_retour": request.session.get("date_retour"),
+            "date_retour_arrivee": request.session.get("date_retour_arrivee"),
+            "prix_unitaire": request.session.get("prix_unitaire")  # tu peux mettre un autre champ si retour différent
         }
 
-        # Formatage des dates aller
-        try:
-            if aller["date_depart"]:
-                aller["date_depart"] = datetime.fromisoformat(aller["date_depart"]).strftime("%Y-%m-%d")
-            if aller["date_arrive"]:
-                aller["date_arrive"] = datetime.fromisoformat(aller["date_arrive"]).strftime("%Y-%m-%d")
-        except Exception as e:
-            print("❌ Erreur formatage date aller :", e)
+        # Champs généraux
+        nb_adultes = request.session.get("nombre_adultes", "0")
+        nb_enfants = request.session.get("nombre_enfants", "0")
+        nb_bagages = request.session.get("nombre_bagages", "0")
 
-        # Formatage des dates retour
-        if retour.get("date_retour") and retour.get("date_retour_arrive"):
+        # Formatage des dates (sécurisé)
+        if aller["date_depart"] and aller["date_arrivee"]:
             try:
-                retour["date_retour"] = datetime.fromisoformat(retour["date_retour"]).strftime("%Y-%m-%d")
-                retour["date_retour_arrive"] = datetime.fromisoformat(retour["date_retour_arrive"]).strftime("%Y-%m-%d")
+                aller["date_depart"] = datetime.fromisoformat(aller["date_depart"]).strftime("%Y-%m-%d")
+                aller["date_arrivee"] = datetime.fromisoformat(aller["date_arrivee"]).strftime("%Y-%m-%d")
             except Exception as e:
-                print("❌ Erreur formatage date retour :", e)
+                print("❌ Erreur format date aller :", e)
+        else:
+            print("❌ Dates aller manquantes ou mal formatées", aller)
 
-        # Enregistrement des données aller dans la session
+        if retour.get("date_retour") and retour.get("date_retour_arrive"):
+            # Assure que les dates de retour sont présentes avant de les formater
+            try:
+                
+                retour["date_retour"] = datetime.fromisoformat(retour["date_retour"]).strftime("%Y-%m-%d")
+                retour["date_retour_arrivee"] = datetime.fromisoformat(retour["date_retour_arrivee"]).strftime("%Y-%m-%d")
+            except Exception as e:
+                print("❌ Erreur format date retour :", e)
+        else:
+            print("❌ Dates retour manquantes ou mal formatées", retour)
+
+        # Stockage dans la session
+        request.session["nom"] = nom
+        request.session["prenom"] = prenom
+        request.session["email"] = email
+        request.session["telephone"] = telephone
+        request.session["adresse"] = adresse
+
         for key, value in aller.items():
             request.session[key] = value
 
-        # Nombre d’adultes, enfants, bagages
-        request.session["nombre_adultes"] = request.POST.get("adults")
-        request.session["nombre_enfants"] = request.POST.get("children")
-        request.session["nombre_bagages"] = request.POST.get("bagages")
+        if retour.get("date_retour"):
+            for key, value in retour.items():
+                request.session[key] = value
 
-        # Enregistrement des données retour si elles existent
-        if retour.get("date_retour") and retour.get("date_retour_arrive"):
-            request.session["ville_depart_retour"] = retour["ville_depart"]
-            request.session["ville_arrive_retour"] = retour["ville_arrive"]
-            request.session["date_retour"] = retour["date_retour"]
-            request.session["date_retour_arrive"] = retour["date_retour_arrive"]
-            request.session["prix_retour"] = request.POST.get("prix_unitaire", "0")  # ou valeur dédiée
+        request.session["nombre_adultes"] = nb_adultes
+        request.session["nombre_enfants"] = nb_enfants
+        request.session["nombre_bagages"] = nb_bagages
 
-        # Dictionnaire pour affichage résumé
+        # Création du dictionnaire final pour affichage
         infos = {
-            "nom": aller["nom"],
-            "prenom": aller["prenom"],
-            "email": aller["email"],
-            "telephone": aller["telephone"],
-            "adresse": aller["adresse"],
+            "nom": nom,
+            "prenom": prenom,
+            "email": email,
+            "telephone": telephone,
+            "adresse": adresse,
             "ville_depart": aller["ville_depart"],
-            "ville_arrive": aller["ville_arrive"],
+            "ville_arrivee": aller["ville_arrivee"],
             "date_depart": aller["date_depart"],
-            "date_arrive": aller["date_arrive"],
-            "prix_aller": aller["prix_unitaire"],
-            "nombre_adultes": request.session["nombre_adultes"],
-            "nombre_enfants": request.session["nombre_enfants"],
-            "nombre_bagages": request.session["nombre_bagages"],
-            "ville_depart_retour": retour["ville_depart_retour"],
-            "ville_arrive_retour": retour["ville_arrive_retour"],
-            "date_retour": retour["date_retour"],
-            "date_retour_arrive": retour["date_retour_arrive"],
-            "prix_retour": request.POST.get("prix_unitaire", "0") ,
+            "date_arrivee": aller["date_arrivee"],
+            "prix_unitaire": aller["prix_unitaire"],
+            "nombre_adultes": nb_adultes,
+            "nombre_enfants": nb_enfants,
+            "nombre_bagages": nb_bagages
         }
 
-        print("🟢 Informations de réservation :", infos)
+        if retour.get("date_retour"):
+            infos.update({
+                "ville_depart_retour": retour["ville_depart"],
+                "ville_arrivee_retour": retour["ville_arrivee"],
+                "date_retour": retour["date_retour"],
+                "date_retour_arrivee": retour["date_retour_arrivee"],
+                "prix_retour": retour["prix_unitaire"]
+            })
 
-        return render(request, "html/reservation.html", infos)
+        print("✅ Informations de réservation :", infos)
+        return render(request, "html/reservation.html", {"infos": infos})
+
+    return redirect("home")
     
 
 def finaliser_reservation(request):
@@ -308,7 +384,7 @@ def finaliser_reservation(request):
         ville_arrivee = request.POST.get("ville_arrivee")
         date_depart = request.POST.get("date_depart")
         date_arrivee = request.POST.get("date_arrivee")
-        adults = request.POST.get("adults")
+        adultes = request.POST.get("adultes")
         enfants = request.POST.get("enfants")
         bagages = request.POST.get("bagages")
 
@@ -317,7 +393,7 @@ def finaliser_reservation(request):
         request.session["ville_arrivee"] = ville_arrivee
         request.session["date_depart"] = date_depart
         request.session["date_arrivee"] = date_arrivee
-        request.session["adults"] = adults
+        request.session["adultes"] = adultes
         request.session["enfants"] = enfants
         request.session["bagages"] = bagages
 
@@ -344,7 +420,7 @@ def finaliser_reservation(request):
         request.session["adresse"] = request.POST.get("adresse")
 
         # Construction du récapitulatif
-        prix_aller = request.session.get("prix_aller", "0")
+        prix_aller = request.session.get("prix_unitaire", "0")
         total = (
             int(prix_aller) +
             int(prix_retour) if prix_retour else 0
@@ -367,7 +443,7 @@ def finaliser_reservation(request):
             "email": request.session["email"],
             "telephone": request.session["telephone"],
             "adresse": request.session["adresse"],
-            "adults": adults,
+            "adultes": adultes,
             "enfants": enfants,
             "bagages": bagages,
         }
@@ -402,9 +478,9 @@ def generate_pdf(request):
         "nombre_adultes": request.session.get("adultes", "0"),
         "nombre_enfants": request.session.get("enfants", "0"),
         "nombre_bagages": request.session.get("bagages", "0"),
-        "prix_aller": request.session.get("prix_aller", "0 fcfa"),
+        "prix_aller": request.session.get("prix_unitaire", "0 fcfa"),
         "prix_retour": request.session.get("prix_retour", "0 fcfa"),
-        "prix_total": int(request.session.get("prix_aller", 0)) + int(request.session.get("prix_retour", 0)),
+        "prix_total": int(request.session.get("prix_unitaire") or "0") + int(request.session.get("prix_retour") or "0"),
         "remarques": "Le voyage a été réservé avec succès. Merci de votre confiance.",
     }
 
@@ -416,17 +492,6 @@ def generate_pdf(request):
         return HttpResponse("Erreur lors de la génération du PDF")
     return response
 
-"""
-def resume_reservation(request):
-    
-    if request.method == 'POST':
-        print("resume_reservation POST request", request.POST)
-        for key in request.POST:
-            request.session[key] = request.POST[key]
-        return redirect('resume')  # redirige vers GET
-
-    return render(request, 'html/resume.html')  # rend la page de résumé
-"""
 
 
 @staff_member_required
@@ -512,6 +577,7 @@ def tchat_vue(request, transporteur_id=None):
 
 def user_login(request):
     if request.method == 'POST':
+        role = request.POST.get('role')
         email = request.POST['email']
         password = request.POST['password']
         user = authenticate(request, username=email, password=password)
@@ -519,7 +585,7 @@ def user_login(request):
             login(request, user)
             code = str(random.randint(100000, 999999))
             VerificationCode.objects.update_or_create(
-                user_iduser=user,
+                user=user,
                 defaults={'code': code}
             )
             request.session['pre_auth_user'] = user.id
@@ -530,7 +596,7 @@ def verify_code(request):
     user_id = request.session.get('pre_auth_user')
     if request.method == 'POST':
         code = request.POST['code']
-        if VerificationCode.objects.filter(user_iduser_id=user_id, code=code).exists():
+        if VerificationCode.objects.filter(user_id=user_id, code=code).exists():
             user = VerificationCode.objects.get(user_iduser_id=user_id).user
             login(request, user)
             return redirect('dashboard')
@@ -543,6 +609,7 @@ def verify_code(request):
 
 def login_chauffeur(request):
     if request.method == 'POST':
+        role = request.POST.get('role')
         email = request.POST['email']
         password = request.POST['password']
         user = authenticate(request, username=email, password=password)
@@ -657,6 +724,83 @@ def tchat_vue(request, transporteur_id=None):
     }
     return render(request, 'user_app/chat_responsive.html', context)
 
+
+
+
+def register_user(request):
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        name = request.POST.get('name')
+        firstname = request.POST.get('firstname')
+        email = request.POST.get('email')
+
+        if role == 'voyageur':
+            Voyageurs.objects.create(
+                name=name,
+                firstname=firstname,
+                email=email
+            )
+            messages.success(request, "Voyageur enregistré avec succès.")
+        elif role == 'chauffeur':
+            date_de_naissance = request.POST.get('date_de_naissance')
+            adresse = request.POST.get('adresse')
+            ville = request.POST.get('ville')
+            permis = request.POST.get('permis')
+            phone = request.POST.get('phone')
+
+            Transporteurs.objects.create(
+                name=name,
+                firstname=firstname,
+                email=email,
+                date_de_naissance=datetime.strptime(date_de_naissance, '%Y-%m-%d'),
+                adresse=adresse,
+                ville=ville,
+                permis=permis,
+                phone=phone
+            )
+            messages.success(request, "Chauffeur enregistré avec succès.")
+        else:
+            messages.error(request, "Rôle invalide.")
+
+        return redirect('login_user')
+
+    return render(request, 'user_app/register_user.html')
+
+def password_reset_voyageur(request):
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        email = request.POST.get('email')
+        new_password = request.POST.get('password')
+
+        try:
+            voyageur = Voyageurs.objects.get(email=email)
+            user = voyageur.user
+            user.password = make_password(new_password)
+            user.save()
+            messages.success(request, "Mot de passe mis à jour pour le voyageur.")
+            return redirect('login')  # ou autre nom d’URL
+        except Voyageurs.DoesNotExist:
+            messages.error(request, "Aucun compte voyageur trouvé pour cet email.")
+    
+    return render(request, 'user_app/password_reset.html')
+
+def password_reset_chauffeur(request):
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        email = request.POST.get('email')
+        new_password = request.POST.get('password')
+
+        try:
+            chauffeur = Transporteurs.objects.get(email=email)
+            user = chauffeur.user
+            user.password = make_password(new_password)
+            user.save()
+            messages.success(request, "Mot de passe mis à jour pour le chauffeur.")
+            return redirect('login')
+        except Transporteurs.DoesNotExist:
+            messages.error(request, "Aucun compte chauffeur trouvé pour cet email.")
+
+    return render(request, 'chauffeur_app/password_reset.html')
 
 
 def about(request):

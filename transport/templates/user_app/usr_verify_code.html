@@ -1,13 +1,68 @@
-
+{% load static %}
 <!DOCTYPE html>
-<html>
-<head><title>Code de vérification - Client</title></head>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Vérification d'identité</title>
+    <link rel="stylesheet" href="{% static 'css/style_user.css' %}">
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f8f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .verify-box {
+            background-color: #fff;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            z-index: 999999;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #2e7d32;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1b5e20;
+        }
+</style>
+</head>
 <body>
-    <h2>Vérifiez votre identité</h2>
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="code" placeholder="Code reçu par mail"><br>
-        <button type="submit">Valider</button>
-    </form>
+    <div class="verify-box">
+        <h2>Vérifiez votre identité</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="Code reçu par mail" required>
+            <button type="submit">Valider</button>
+        </form>
+    </div>
 </body>
 </html>

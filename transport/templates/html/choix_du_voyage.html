@@ -28,7 +28,7 @@
     <option>{{ nombre_adultes }} adulte(s), {{ nombre_enfants }} enfant(s), {{ nombre_bagages }} bagage(s)</option>
     </select>
   </div>
-  {% if result or result_retour %}
+  {% if result.ville_depart or result_retour.ville_depart %}
   {% if date_retour is not none %}
   <div class="annonce-wrapper">
   
@@ -103,11 +103,7 @@
 {% endif %}
 
 {% else %}
-<style>
-  
 
-
-</style>
 
 <div style="background-color: rgba(0, 0,0,0.6);
 padding : 30px;

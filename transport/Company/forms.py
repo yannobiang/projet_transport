@@ -2,8 +2,11 @@ from django import forms
 
 
 class ExcelImportForm(forms.Form):
-    excel_file = forms.FileField(label="Fichier Excel", required=True)
-    
+    excel_file = forms.FileField(
+        label="Fichier Excel", 
+        required=True
+        )
+
 class RowTripForm(forms.Form) : 
 
     """ cette classe est le modèle de formulaie"""

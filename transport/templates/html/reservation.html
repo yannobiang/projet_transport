@@ -63,69 +63,78 @@
 <form id="reservationForm" method="post" action="{% url 'finaliser_reservation' %}">
     {% csrf_token %}
     <input type="text" id="nom" name="nom" placeholder="Nom"
-           value="{{ nom }}" required>
+           value="{{ infos.nom }}" required>
     <input type="text" id="prenom" name="prenom" placeholder="Prénom"
-           value="{{ prenom }}" required>
+           value="{{ infos.prenom }}" required>
     <input type="email" id="email" name="email" placeholder="Email"
-           value="{{ email }}" required>
+           value="{{ infos.email }}" required>
     <input type="tel" id="telephone" name="telephone" placeholder="Téléphone"
-           value="{{ telephone }}" required>
-
-    <input type="text" id="ville_depart" name="ville_depart" placeholder="Ville de départ"
-           value="{{ aller.ville_depart }}" required>
-
-    <input type="text" id="ville_arrivee" name="ville_arrivee" placeholder="Ville d'arrivée"
-           value="{{ aller.ville_arrivee }}" required>
+           value="{{ infos.telephone }}" required>
+           <input type="text" id="adresse" name="adresse" placeholder="Adresse"
+           value="{{ infos.adresse }}" required>
+    
+    <h3>Trajet aller</h3>
     <div style="display: flex; flex-direction: row; gap: 10px; justify-content: space-between; width: 100%;">
       
-      <input type="date" id="date_depart" name="date_arrivee"
-      value="{{ aller.date_arrivee }}" required>    
+    <input type="text" id="ville_depart" name="ville_depart" placeholder="Ville de départ"
+           value="{{ infos.ville_depart }}" required>
 
+    <input type="text" id="ville_arrivee" name="ville_arrivee" placeholder="Ville d'arrivée"
+           value="{{ infos.ville_arrivee }}" required>
     <input type="date" id="date_depart" name="date_depart"
-           value="{{ aller.date_depart }}" required>
+           value="{{ infos.date_depart }}" required>
+      
+    <input type="date" id="date_depart" name="date_arrivee"
+      value="{{ infos.date_arrivee }}" required>    
+
+    
     </div>
     
 
-    {% if retour %}
-
-    <input type="text" id="ville_depart_retour" name="ville_depart_retour" placeholder="Ville de départ retour"
-           value="{{ retour.ville_depart }}" required>
-    <input type="text" id="ville_arrivee_retour" name="ville_arrivee_retour" placeholder="Ville d'arrivée retour"
-           value="{{ retour.ville_arrivee }}" required>
+    {% if infos.date_retour %}
+    <h3>Trajet retour</h3>
+    
     <div style="display: flex; flex-direction: row; gap: 10px; justify-content: space-between; width: 100%;">
-        <input type="date" id="date_retour" name="date_retour_depart"
-                placeholder="Date de retour départ"
-               value="{{ retour.date_depart }}" required>
+      <input type="text" id="ville_depart_retour" name="ville_depart_retour" placeholder="Ville de départ retour"
+      value="{{ infos.ville_depart_retour }}" required>
+      <input type="text" id="ville_arrivee_retour" name="ville_arrivee_retour" placeholder="Ville d'arrivée retour"
+      value="{{ infos.ville_arrivee_retour }}" required>
+        <input type="date" id="date_retour" name="date_retour"
+                placeholder="Date de départ"
+               value="{{ infos.date_retour }}" required>
                
-        <input type="date" id="date_retour" name="date_retour_arrivee"
+        <input type="date" id="date_retour_arrivee" name="date_retour_arrivee"
                placeholder="Date de retour"
-               value="{{ retour.date_arrivee }}" required>
+               value="{{ infos.date_retour_arrivee }}" required>
+        <input type="hidden" name="prix_retour" value="{{ retour.prix_retour }}">
     </div>
     {% endif %}
+
+
     <div style="display: flex; flex-direction: row; gap: 10px; justify-content: space-between; width: 100%;">
     <label for="adultes">Adultes:</label>
       <input type="number" id="adultes" name="adultes" placeholder="Nombre d’adultes"
-      value="{{ nombre_adultes }}" min="1" required>
+      value="{{ infos.nombre_adultes }}" min="1" required>
     <label for="enfants">Enfants:</label>
     <input type="number" id="enfants" name="enfants" placeholder="Nombre d’enfants"
-          value="{{ nombre_enfants }}" min="0">
+          value="{{ infos.nombre_enfants }}" min="0">
     <label for="bagages">Bagages:</label>
     <input type="number" id="bagages" name="bagages" placeholder="Nombre de bagages"
-          value="{{ nombre_bagages }}" min="0">
+          value="{{ infos.nombre_bagages }}" min="0">
     </div>
     
-
+    <br><br>
     <button type="submit">Valider la réservation</button>
 </form>
 
   <div id="resumeChoix">
 
     <h3>Trajet aller</h3>
-    <p> Départ : {{ aller.ville_depart }}, le {{ aller.date_depart }} - Retour : {{ aller.ville_arrivee }}, le {{ aller.date_arrivee }}</p>
+    <p> Départ : {{ infos.ville_depart }}, le {{ infos.date_depart }} - Retour : {{ infos.ville_arrivee }}, le {{ infos.date_arrivee }}</p>
 
     {% if retour %}
     <h3>Trajet retour</h3>
-    <p>Départ : {{ retour.ville_depart }}, le {{ retour.date_depart }} - Retour : {{ retour.ville_arrivee }}, le {{ retour.date_arrivee }}</p>
+    <p>Départ : {{ infos.ville_depart_retour }}, le {{ infos.date_retour }} - Retour : {{ infos.ville_arrivee_retour }}, le {{ infos.date_retour_arrivee }}</p>
     {% endif %}
 
   </div>

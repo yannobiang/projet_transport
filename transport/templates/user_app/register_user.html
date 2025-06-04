@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Créer un compte</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="nom" placeholder="Nom" required>
+            <input type="text" name="prenom" placeholder="Prénom" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <select name="role" required>
+                <option value="">Choisissez un rôle</option>
+                <option value="voyageur">Voyageur</option>
+                <option value="chauffeur">Chauffeur</option>
+            </select>
+            <button type="submit">S'inscrire</button>
+        </form>
+        <a href="{% url 'password_reset_chauffeur' %}">Mot de passe oublié ?</a>
+    </div>
+</body>
+</html>

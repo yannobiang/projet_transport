@@ -1,14 +1,31 @@
+{% load static %}
 
 <!DOCTYPE html>
-<html>
-<head><title>Connexion Client</title></head>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Client</title>
+    <link rel="stylesheet" href="{% static 'css/style_user.css' %}">
+</head>
 <body>
-    <h2>Connexion Client</h2>
-    <form method="post">
-        {% csrf_token %}
-        <input type="email" name="email" placeholder="Email"><br>
-        <input type="password" name="password" placeholder="Mot de passe"><br>
-        <button type="submit">Se connecter</button>
-    </form>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <h2>Connexion Client</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="email" name="email" placeholder="Email" required><br>
+                <input type="password" name="password" placeholder="Mot de passe" required><br>
+                <button type="submit">Se connecter</button>
+                <input type="hidden" name="role" value="voyageur">
+            </form>
+            <!-- LIENS UTILES -->
+            <div style="margin-top: 15px;">
+                <a href="{% url 'register_user' %}" style="margin-right: 20px; color: #4CAF50; font-weight: bold;">Créer un compte</a>
+                <a href="{% url 'password_reset_voyageur' %}" style="color: #4CAF50; font-weight: bold;">Mot de passe oublié ?</a>
+            </div>
+        </div>
+       
+    </div>
 </body>
 </html>
