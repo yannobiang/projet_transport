@@ -57,12 +57,14 @@ def home(request):
             
             list_of_depart = [col.title() for col in dataSend['depart']]
             list_of_destination = [col.title() for col in dataSend['destination']]
+            print("ville de départ :", list_of_depart)
+            print("ville de destination :", list_of_destination)
+            print("liste de destination :", Voyages.objects.filter(date_depart__range=(yesterday, tomorrow)).filter(ville_depart__in=list_of_depart).values())
             result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
                                          .filter(ville_depart__in=list_of_depart)
                                          .filter(ville_arrivee__in=list_of_destination)
                                          .order_by('date_depart')
-                                         .exclude(ville_depart__in=list_of_destination)
-                                         .exclude(ville_arrivee__in=list_of_depart).values(
+                                         .values(
                                              "ville_depart",
                                              "ville_arrivee",
                                              "date_depart",
@@ -71,7 +73,7 @@ def home(request):
                                              "id"
                                          )
                         )
-            
+            print(">>>>>>> les data de envoi :", result)
             for i in range(len(result)):
                 
                 result[i]['heures'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[0])

@@ -28,7 +28,9 @@
     <option>{{ nombre_adultes }} adulte(s), {{ nombre_enfants }} enfant(s), {{ nombre_bagages }} bagage(s)</option>
     </select>
   </div>
-  {% if result.ville_depart or result_retour.ville_depart %}
+
+  {% if result or result_retour %}
+  
   {% if date_retour is not none %}
   <div class="annonce-wrapper">
   
@@ -49,7 +51,7 @@
   
             <div class="info-ligne">
               <div class="bloc">Retour : {{ retour.date_depart }} - {{ retour.ville_depart }}</div>
-              <div class="bloc">Durée : {{ retour.heures }}h{{ retour.minutes }}</div>
+              <div class="bloc">Durée : {{ retour.heures }}:{{ retour.minutes }}</div>
               <div class="bloc">Arrivée : {{ retour.date_arrivee }} - {{ retour.ville_arrivee }}</div>
             </div>
   
