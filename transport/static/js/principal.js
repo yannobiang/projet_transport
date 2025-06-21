@@ -26,20 +26,8 @@ const passager_fill = document.getElementById("btn-passager");
 const mystyle = document.querySelector(".mystyle");
 
 /* nous recuperons les valeurs d'aller et de retour */
-
-let Rcheck = document.getElementById("retour");
-let Acheck = document.getElementById("aller");
-const dateretour = document.querySelector(".date-retour");
-
-/*const dateretour2 = document.querySelector(".date-retour2");*/
-
-/* les fonctions utilisees par le proramme */
-
-/* ajout de la possibilite de la date de retour */
-
-
 document.addEventListener("DOMContentLoaded", function () {
-  // ton code ici
+  // Gestion affichage date retour
   const k = document.getElementById("aller");
   const retour = document.querySelector(".date-retour");
 
@@ -54,112 +42,72 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-});
 
-Rcheck.addEventListener('click', () => {
-  if(Rcheck.checked === true){ 
-    console.log("retour checked");
-    document.querySelector(".date-retour").style.display = "block"}
-  }
-);
-/* modification du compte nombre des adultes */
-
-btn_adl_more.addEventListener("click", () => {
-  countAdulte += 1;
-  nb_adl.value = countAdulte;
-});
-btn_adl_manus.addEventListener("click", () => {
-  countAdulte -= 1;
-
-  if (countAdulte > 0) {
-    nb_adl.value = countAdulte;
-  } else {
-    nb_adl.value = 0;
-  }
-});
-
-/* modification du compte nombre des enfants */
-
-btn_enf_more.addEventListener("click", () => {
-  countEnfant += 1;
-  nb_enf.value = countEnfant;
-});
-btn_enf_manus.addEventListener("click", () => {
-  countEnfant -= 1;
-  if (countEnfant > 0) {
-    nb_enf.value = countEnfant;
-  } else {
-    nb_enf.value = 0;
-  }
-});
-
-/* modification du compte nombre des bagages */
-
-btn_bg_more.addEventListener("click", () => {
-  countBagage += 1;
-  nb_bga.value = countBagage;
-});
-
-btn_bg_manus.addEventListener("click", () => {
-  countBagage -= 1;
-  if (countBagage > 0) {
-    nb_bga.value = countBagage;
-  } else {
-    nb_bga.value = 0;
-  }
-});
-
-
-dropDown.addEventListener("click", () => {
-  dropDowncontent.classList.toggle("mystyle");
-
-  if (nb_adl.value > 1) {
-    passager_fill.innerHTML = nb_adl.value + " " + "Adultes";
-    if (nb_enf.value > 1) {
-      passager_fill.innerHTML += ", " + nb_enf.value + " " + "Enfants";
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
+  const Rcheck = document.getElementById("retour");
+  if (Rcheck && retour) {
+    Rcheck.addEventListener("click", () => {
+      if (Rcheck.checked === true) {
+        console.log("retour checked");
+        retour.style.display = "block";
+      } else {
+        retour.style.display = "none";
       }
-    } else if (nb_enf.value == 1) {
-      passager_fill.innerHTML += ", " + nb_enf.value + " " + "Enfant";
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
-      }
-    } else {
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
-      }
+    });
+  }
+
+  // Gestion des compteurs
+  function bindCounter(btnPlusSelector, btnMinusSelector, inputId, initial = 0, min = 0) {
+    const btnPlus = document.querySelector(btnPlusSelector);
+    const btnMinus = document.querySelector(btnMinusSelector);
+    const input = document.getElementById(inputId);
+    let count = initial;
+
+    if (btnPlus && input) {
+      btnPlus.addEventListener("click", () => {
+        count += 1;
+        input.value = count;
+      });
     }
-  } else if (nb_adl.value == 1) {
-    passager_fill.innerHTML = nb_adl.value + " " + "Adulte";
 
-    if (nb_enf.value > 1) {
-      passager_fill.innerHTML += ", " + nb_enf.value + " " + "Enfants";
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
-      }
-    } else if (nb_enf.value == 1) {
-      passager_fill.innerHTML += ", " + nb_enf.value + " " + "Enfant";
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
-      }
-    } else {
-      if (nb_bga.value > 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagages";
-      } else if (nb_bga.value == 1) {
-        passager_fill.innerHTML += ", " + nb_bga.value + " " + "Bagage";
-      }
+    if (btnMinus && input) {
+      btnMinus.addEventListener("click", () => {
+        count = Math.max(min, count - 1);
+        input.value = count;
+      });
     }
+  }
+
+  bindCounter(".btn-more-adl", ".btn-manus-adl", "nbr-adl", 1);
+  bindCounter(".btn-more-enf", ".btn-manus-enf", "nbr-enf", 0);
+  bindCounter(".btn-more-bg", ".btn-manus-bg", "nbr-bga", 0);
+});
+
+
+// Fonction pour remplir le champ passager_fill
+
+document.addEventListener("DOMContentLoaded", function () {
+  const dropDown = document.getElementById("dropdown-btn");
+  const dropDowncontent = document.getElementById("dropdown-content");
+  const passager_fill = document.getElementById("passager-fill");
+
+  const nb_adl = document.getElementById("nbr-adl");
+  const nb_enf = document.getElementById("nbr-enf");
+  const nb_bga = document.getElementById("nbr-bga");
+
+  if (dropDown && dropDowncontent && passager_fill && nb_adl && nb_enf && nb_bga) {
+    dropDown.addEventListener("click", () => {
+      dropDowncontent.classList.toggle("mystyle");
+
+      // Ici ton code pour remplir passager_fill exactement comme tu l’as fourni
+      let text = `${nb_adl.value} ${nb_adl.value == 1 ? "Adulte" : "Adultes"}`;
+      if (nb_enf.value > 0) {
+        text += `, ${nb_enf.value} ${nb_enf.value == 1 ? "Enfant" : "Enfants"}`;
+      }
+      if (nb_bga.value > 0) {
+        text += `, ${nb_bga.value} ${nb_bga.value == 1 ? "Bagage" : "Bagages"}`;
+      }
+      passager_fill.innerHTML = text;
+    });
   }
 });
 

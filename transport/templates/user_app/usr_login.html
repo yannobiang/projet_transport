@@ -19,6 +19,13 @@
                 <button type="submit">Se connecter</button>
                 <input type="hidden" name="role" value="voyageur">
             </form>
+            {% if messages %}
+                <div class="alert-box">
+                    {% for message in messages %}
+                        <p style="color: red;">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
             <!-- LIENS UTILES -->
             <div style="margin-top: 15px;">
                 <a href="{% url 'register_user' %}" style="margin-right: 20px; color: #4CAF50; font-weight: bold;">Créer un compte</a>

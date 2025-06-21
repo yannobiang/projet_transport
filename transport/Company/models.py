@@ -29,6 +29,12 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
+    ROLE_CHOICES = [
+        ('voyageur', 'Voyageur'),
+        ('chauffeur', 'Chauffeur'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='voyageur')
+
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -67,9 +73,11 @@ class Transporteurs(models.Model):
 
 class Voyageurs(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    password_reset_required = models.BooleanField(default=True)
     name = models.CharField(max_length=50)
     firstname = models.CharField(max_length=50)
     email = models.EmailField()
+    ticket_pdf = models.FileField(upload_to='tickets/', null=True, blank=True)
 
     class Meta:
         verbose_name = "Voyageur"
@@ -160,3 +168,14 @@ class VerificationCode(models.Model):
 
     def _str_(self):
         return f"Code {self.code} for {self.user.email}"
+
+# ========================
+# 📅 Réservations
+# ========================
+class Reservation(models.Model):
+    voyageur = models.ForeignKey(Voyageurs, on_delete=models.CASCADE)
+    voyage = models.ForeignKey(Voyages, on_delete=models.CASCADE)
+    date_reservation = models.DateTimeField(auto_now_add=True)
+
+    def prix(self):
+        return self.voyage.prix_unitaire

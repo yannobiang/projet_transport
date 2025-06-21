@@ -22,7 +22,13 @@
             </select>
             <button type="submit">S'inscrire</button>
         </form>
+        {% if chauffeur %}
         <a href="{% url 'password_reset_chauffeur' %}">Mot de passe oublié ?</a>
+        {% else %}
+        
+        <a href="{% url 'password_reset_voyageur' %}">Mot de passe oublié ?</a>
+        {% endif %}
+        
     </div>
 </body>
 </html>

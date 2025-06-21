@@ -390,6 +390,30 @@ align-items: anchor-center;
   height: 100%;
 }
 
+.calendar button {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.calendar button:hover {
+  background-color: #059669;
+}
+.calendar button.selected-day {
+  background-color: #fbbf24;
+  color: black;
+  font-weight: bold;
+  border: 2px solid #f59e0b;
+}
+.result-container {
+  display: none;
+}
+
+
 @media screen and (max-width: 768px) {
   .hero-section {
       padding: 20px 10px;

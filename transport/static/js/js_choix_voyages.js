@@ -72,3 +72,20 @@ document.addEventListener("DOMContentLoaded", function () {
       showRetourPage(retourCurrentPage);
     }
   });
+
+function switchDay(selectedDay) {
+    const allContainers = ['hier', 'aujourdhui', 'demain'];
+    allContainers.forEach(day => {
+        const container = document.getElementById(`result-${day}`);
+        const button = document.getElementById(`btn-${day}`);
+        if (container) container.style.display = 'none';
+        if (button) button.classList.remove('selected-day');
+    });
+    const selectedContainer = document.getElementById(`result-${selectedDay}`);
+    const selectedButton = document.getElementById(`btn-${selectedDay}`);
+    if (selectedContainer) selectedContainer.style.display = 'block';
+    if (selectedButton) selectedButton.classList.add('selected-day');
+}
+document.addEventListener("DOMContentLoaded", function() {
+  switchDay('aujourdhui');
+});

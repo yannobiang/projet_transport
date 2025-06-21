@@ -1,28 +1,40 @@
 from django.shortcuts import render, HttpResponse
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta, time, timezone
 from django.utils.timezone import now, localdate, make_aware
-from .models import Voyages,MessageClientChauffeur, CustomUser, VerificationCode, Voyageurs, Transporteurs
+from .models import Voyages,MessageClientChauffeur, CustomUser, VerificationCode, Voyageurs, Transporteurs, Reservation, Asso_trans_voyageur
 from .utils import convert, get_weekday, get_month, safe_format_iso
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from itertools import zip_longest
 import json
+from django.core.files import File
+from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 import random
+from django.contrib.auth import get_user_model
+from django.utils.crypto import get_random_string
 from import_excel import FillData
 from .forms import ExcelImportForm
 import os
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+import io
+from io import BytesIO
 
 
 # Create your views here.
+User = get_user_model()
 
 
 def home(request):
@@ -32,133 +44,157 @@ def home(request):
         chaque dictionnaire contient les informations sur le voyage
     """
     current = date.today().strftime("%Y-%m-%d")
-    # récupération de la date actuelle
-    
-    # filtrage des données
-    # result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow)).filter(ville_depart__contains= 'LIBREVILLE').exclude(ville_arrivee='LIBREVILLE').values())
-    
-    # affichage des données
-   
+
     if request.method == 'POST':
         dataSend = dict(request.POST)
-        today =  datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
+        today = datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
         try:
             date_retour = datetime.strptime(dataSend['date_retour'][0], "%Y-%m-%d").date()
         except:
             date_retour = None
 
+        yesterday = today - timedelta(days=1)
+        tomorrow = today + timedelta(days=1)
+
+        list_of_depart = [col.title() for col in dataSend['depart']]
+        list_of_destination = [col.title() for col in dataSend['destination']]
+
         if dataSend['trip'][0] == "aller":
-
-            # si le voyage est aller simple
-            yesterday = today - timedelta(days=1)
-            tomorrow = today + timedelta(days=1)
-
-            # filtrage des données
-            
-            list_of_depart = [col.title() for col in dataSend['depart']]
-            list_of_destination = [col.title() for col in dataSend['destination']]
-            print("ville de départ :", list_of_depart)
-            print("ville de destination :", list_of_destination)
-            print("liste de destination :", Voyages.objects.filter(date_depart__range=(yesterday, tomorrow)).filter(ville_depart__in=list_of_depart).values())
-            result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
+            print("<<<<<<<<<<<<<<<< je suis la<<<<<<<<<<<<<<")
+            result_hier = list(Voyages.objects.filter(date_depart=yesterday)
                                          .filter(ville_depart__in=list_of_depart)
                                          .filter(ville_arrivee__in=list_of_destination)
                                          .order_by('date_depart')
-                                         .values(
-                                             "ville_depart",
-                                             "ville_arrivee",
-                                             "date_depart",
-                                             "date_arrivee",
-                                             "prix_unitaire",
-                                             "id"
-                                         )
-                        )
-            print(">>>>>>> les data de envoi :", result)
-            for i in range(len(result)):
-                
-                result[i]['heures'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[0])
-                result[i]['minutes'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[1])
-                result[i]['second'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[2])
+                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+
+            result = list(Voyages.objects.filter(date_depart=today)
+                                         .filter(ville_depart__in=list_of_depart)
+                                         .filter(ville_arrivee__in=list_of_destination)
+                                         .order_by('date_depart')
+                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+
+            result_demain = list(Voyages.objects.filter(date_depart=tomorrow)
+                                         .filter(ville_depart__in=list_of_depart)
+                                         .filter(ville_arrivee__in=list_of_destination)
+                                         .order_by('date_depart')
+                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+            
+            if len(result) >= 1: 
+                prix_total = result[0]['prix_unitaire'] 
+            elif len(result) == 0 and len(result_demain) >= 1:
+                prix_total = result_demain[0]['prix_unitaire'] 
+            elif len(result) == 0 and len(result_demain) == 0 and len(result_hier) >= 1:
+                prix_total = result_hier[0]['prix_unitaire'] 
+            else:
+                prix_total = 0
+
+
+            for dataset in [result_hier, result, result_demain]:
+                for i in range(len(dataset)):
+                    dataset[i]['heures'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[0])
+                    dataset[i]['minutes'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[1])
+                    dataset[i]['second'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[2])
 
             list_of_date = dataSend['date_depart'][0].split('-')
-            # ... ton traitement existant ...
-    
-            request.session['results_aller'] = json.dumps(result, default=str) 
+
+            request.session['results_aller'] = json.dumps(result, default=str)
             request.session['date_depart'] = dataSend['date_depart'][0]
             request.session['date_retour'] = dataSend['date_retour'][0]
             request.session['nombre_adultes'] = dataSend['nbr_adl'][0]
             request.session['nombre_enfants'] = dataSend['nbr_enf'][0]
             request.session['nombre_bagages'] = dataSend['nbr_bga'][0]
+            request.session['voyage_id_aller'] = result[0]['id'] if result else None
+            request.session['prix_total'] = prix_total
 
+            resultat_full = {
+                "result_hier": result_hier,
+                "result": result,
+                "result_demain": result_demain,
+             }
+            result_by_day = {
+                "hier": result_hier,
+                "aujourdhui": result,
+                "demain": result_demain
+            }
+            print("result_hier", result_hier)
+            print("result", result)
+            print("result_demain", result_demain)
+            context = {
+                "result": resultat_full["result"],
+                "result_demain": resultat_full["result_demain"],
+                "result_hier": resultat_full["result_hier"],
+                "ville_depart": dataSend['depart'][0],
+                "ville_arrivee": dataSend['destination'][0],
+                "nombre_enfants": dataSend['nbr_enf'][0],
+                "nombre_adultes": dataSend['nbr_adl'][0],
+                "nombre_bagages": dataSend['nbr_bga'][0],
+                "jour_avant": get_weekday(today - timedelta(days=1)),
+                "jour_apres": get_weekday(today + timedelta(days=1)),
+                "jour": get_weekday(today),
+                "mois": get_month(str(int(list_of_date[1]))),
+                "num_du_jour": int(list_of_date[2]),
+                "num_du_jour_avant": int(list_of_date[2]) - 1,
+                "num_du_jour_apres": int(list_of_date[2]) + 1,
+                "date_depart": dataSend['date_depart'][0],
+                "prix_total": prix_total,
+                "timestamp": int(datetime.timestamp(datetime.now())),
+            }
+            return render(request, 'html/choix_du_voyage.html', context=context)
 
-            context = { 'result' : result, 
-                       "ville_depart" : dataSend['depart'][0],
-                       "ville_arrivee" : dataSend['destination'][0],
-                       "nombre_enfants" : dataSend['nbr_enf'][0], 
-                       "nombre_adultes" : dataSend['nbr_adl'][0], 
-                       "nombre_bagages" : dataSend['nbr_bga'][0],
-                       "jour_avant" : get_weekday(today - timedelta(days=1)),
-                       "jour_apres" : get_weekday(today + timedelta(days=1)),
-                       "jour" : get_weekday(today),
-                       "mois" : get_month(str(int(list_of_date[1]))),
-                       "num_du_jour" : int(list_of_date[2]),
-                       "num_du_jour_avant" : int(list_of_date[2]) - 1,
-                       "num_du_jour_apres" : int(list_of_date[2]) + 1,
-                       "date_depart" : dataSend['date_depart'][0],
-                       "timestamp" : int(datetime.timestamp(datetime.now())),
-                      }
-            return render(request,'html/choix_du_voyage.html' , context = context)
-        # si le voyage est aller retour
         elif dataSend['trip'][0] == "retour":
-
-            print("la date d'aujourd'hui :", today)
-            yesterday = today - timedelta(days=1)
-            print("la date d'hier :", yesterday)
-            tomorrow = today + timedelta(days=1)
-            print("la date de demain :", tomorrow)
-            print("la data entre :", dataSend)
-
-            
-
-            # filtrage des données
-            
-            list_of_depart = [col.title() for col in dataSend['depart']]
-            list_of_retour = [col.title() for col in dataSend['destination']]
-
-            
-            result = list(Voyages.objects.filter(date_depart__range=(yesterday, tomorrow))
+            result_hier = list(Voyages.objects.filter(date_depart=yesterday)
                                          .filter(ville_depart__in=list_of_depart)
                                          .exclude(ville_arrivee__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_retour)
+                                         .filter(ville_arrivee__in=list_of_destination)
                                          .order_by('date_depart')
-                                         .values()
-                        )
-            result_retour = list(Voyages.objects.filter(date_arrivee__gt= tomorrow)
-                                         .filter(ville_depart__in=list_of_retour)
+                                         .values())
+
+            result = list(Voyages.objects.filter(date_depart=today)
+                                         .filter(ville_depart__in=list_of_depart)
+                                         .exclude(ville_arrivee__in=list_of_depart)
+                                         .filter(ville_arrivee__in=list_of_destination)
+                                         .order_by('date_depart')
+                                         .values())
+
+            result_demain = list(Voyages.objects.filter(date_depart=tomorrow)
+                                         .filter(ville_depart__in=list_of_depart)
+                                         .exclude(ville_arrivee__in=list_of_depart)
+                                         .filter(ville_arrivee__in=list_of_destination)
+                                         .order_by('date_depart')
+                                         .values())
+
+            result_retour = list(Voyages.objects.filter(date_arrivee__gt=tomorrow)
+                                         .filter(ville_depart__in=list_of_destination)
                                          .filter(ville_arrivee__in=list_of_depart)
                                          .order_by('date_depart')
-                                         .values()
-                        )
-            #if len(result_retour) == 0:
-            #   return HttpResponse("Aucun voyage retour trouvé pour les critères spécifiés.", status=404)
-            # filtrage des données
-            print(">>>>>>> les data de envoi :", result)
-            print(">>>>>>> les data de retour :", result_retour)
-            
-            request.session['results_aller'] = json.dumps(result, default=str) 
-            request.session['results_retour'] = json.dumps(result_retour, default=str) 
+                                         .values())
+            if result :
+                prix_total = result[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+            elif not result and result_demain:
+                prix_total = result_demain[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+            elif not result and not result_demain and result_hier:
+                prix_total = result_hier[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+            else:
+                prix_total = 0
+
+            request.session['results_aller'] = json.dumps(result, default=str)
+            request.session['results_retour'] = json.dumps(result_retour, default=str)
             request.session['date_depart'] = dataSend['date_depart'][0]
             request.session['date_retour'] = dataSend['date_retour'][0]
             request.session['nombre_adultes'] = dataSend['nbr_adl'][0]
             request.session['nombre_enfants'] = dataSend['nbr_enf'][0]
             request.session['nombre_bagages'] = dataSend['nbr_bga'][0]
+            request.session['voyage_id_aller'] = result[0]['id'] if result else None
+            request.session['voyage_id_retour'] = result_retour[0]['id'] if result_retour else None
+            request.session['prix_total'] = prix_total
+            # Calcul des heures, minutes et secondes pour chaque voyage
             
-            for i in range(len(result)):
-                
-                result[i]['heures'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[0])
-                result[i]['minutes'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[1])
-                result[i]['second'] = int(convert(result[i]['date_arrivee'].timestamp() - result[i]['date_depart'].timestamp())[2])
-            
+            for dataset in [result_hier, result, result_demain]:
+                for i in range(len(dataset)):
+                    dataset[i]['heures'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[0])
+                    dataset[i]['minutes'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[1])
+                    dataset[i]['second'] = int(convert(dataset[i]['date_arrivee'].timestamp() - dataset[i]['date_depart'].timestamp())[2])
+
             for i in range(len(result_retour)):
                 result_retour[i]['heures'] = int(convert(result_retour[i]['date_arrivee'].timestamp() - result_retour[i]['date_depart'].timestamp())[0])
                 result_retour[i]['minutes'] = int(convert(result_retour[i]['date_arrivee'].timestamp() - result_retour[i]['date_depart'].timestamp())[1])
@@ -167,110 +203,84 @@ def home(request):
             list_of_date = dataSend['date_depart'][0].split('-')
             list_of_date_retour = dataSend['date_retour'][0].split('-')
 
-            
-            
-            context = { 'result' : result, 
-                       'result_retour' : result_retour,
-                       "ville_depart" : dataSend['depart'][0],
-                       "ville_arrivee" : dataSend['destination'][0],
-                       "nombre_enfants" : dataSend['nbr_enf'][0], 
-                       "nombre_adultes" : dataSend['nbr_adl'][0], 
-                       "nombre_bagages" : dataSend['nbr_bga'][0],
-                       "jour_avant" : get_weekday(today - timedelta(days=1)),
-                       "jour_apres" : get_weekday(today + timedelta(days=1)),
-                       "jour" : get_weekday(today),
-                       "mois" : get_month(str(int(list_of_date[1]))),
-                       "jour_retour" : get_weekday(date_retour + timedelta(days=1)),
-                       "mois_retour" : get_month(str(int(list_of_date_retour[1]))),
-                       "jour_retour_avant" : get_weekday(date_retour),
-                       "jour_retour_apres" : get_weekday(date_retour + timedelta(days=2)),
+            resultat_full = {
+                "result_hier": result_hier,
+                "result": result,
+                "result_demain": result_demain,
+             }
 
-                       "num_du_jour" : int(list_of_date[2]),
-                       "num_du_jour_avant" : int(list_of_date[2]) - 1,
-                       "num_du_jour_apres" : int(list_of_date[2]) + 1,
-                       "num_du_jour_retour" : int(list_of_date_retour[2]),
-                       "num_du_jour_retour_avant" : int(list_of_date_retour[2]) - 1,
-                       "num_du_jour_retour_apres" : int(list_of_date_retour[2]) + 1,
-                       "date_depart" : dataSend['date_depart'][0],
-                       "date_retour" : dataSend['date_retour'][0],
-                       "timestamp" : int(datetime.timestamp(datetime.now())),
-                      }
-            return render(request,'html/choix_du_voyage.html' , context = context)
+            result_by_day = {
+                "hier": result_hier,
+                "aujourdhui": result,
+                "demain": result_demain
+            }
+            print("result_hier", result_hier)
+            print("result", result)
+            print("result_demain", result_demain)
+            print("result_retour", result_retour)
+
+            context = {
+                "result": resultat_full["result"],
+                "result_demain": resultat_full["result_demain"],
+                "result_hier": resultat_full["result_hier"],
+                "result_retour": result_retour,
+                "result_by_day": result_by_day,
+                "ville_depart": dataSend['depart'][0],
+                "ville_arrivee": dataSend['destination'][0],
+                "nombre_enfants": dataSend['nbr_enf'][0],
+                "nombre_adultes": dataSend['nbr_adl'][0],
+                "nombre_bagages": dataSend['nbr_bga'][0],
+                "jour_avant": get_weekday(today - timedelta(days=1)),
+                "jour_apres": get_weekday(today + timedelta(days=1)),
+                "jour": get_weekday(today),
+                "mois": get_month(str(int(list_of_date[1]))),
+                "jour_retour": get_weekday(date_retour + timedelta(days=1)),
+                "mois_retour": get_month(str(int(list_of_date_retour[1]))),
+                "jour_retour_avant": get_weekday(date_retour),
+                "jour_retour_apres": get_weekday(date_retour + timedelta(days=2)),
+                "num_du_jour": int(list_of_date[2]),
+                "num_du_jour_avant": int(list_of_date[2]) - 1,
+                "num_du_jour_apres": int(list_of_date[2]) + 1,
+                "num_du_jour_retour": int(list_of_date_retour[2]),
+                "num_du_jour_retour_avant": int(list_of_date_retour[2]) - 1,
+                "num_du_jour_retour_apres": int(list_of_date_retour[2]) + 1,
+                "date_depart": dataSend['date_depart'][0],
+                "date_retour": dataSend['date_retour'][0],
+                "list_of_day" : [('hier', result_hier), ('aujourdhui', result), ('demain', result_demain)] ,
+                "prix_total": prix_total,
+                "timestamp": int(datetime.timestamp(datetime.now())),
+            }
+            return render(request, 'html/choix_du_voyage.html', context=context)
 
     else:
         return render(request, 'html/section.html', context={
             'current': current
         })
-    
 
 def infos_personnelles(request):
-    import json
-
     if request.method == "POST":
-        selected_index = request.POST.get("selected_index")
-        print("selected_index :", selected_index)
+        voyage_id_aller = request.POST.get("voyage_id_aller")
+        voyage_id_retour = request.POST.get("voyage_id_retour")  # peut être None
 
-        if selected_index is None:
-            return HttpResponse("Erreur : aucun index sélectionné", status=400)
+        voyage_aller = Voyages.objects.filter(id=voyage_id_aller).values().first()
+        voyage_retour = Voyages.objects.filter(id=voyage_id_retour).values().first() if voyage_id_retour else None
+        print("voyage_aller", voyage_aller)
+        print("voyage_retour", voyage_retour)
+        if not voyage_aller:
+            return HttpResponseForbidden("Voyage aller non trouvé.")
+        
+        request.session['selected_aller'] = json.dumps([voyage_aller], default=str)
+        request.session['voyage_id_aller'] = voyage_aller["id"]
 
-        try:
-            index = int(selected_index)
-        except ValueError:
-            return HttpResponse("Erreur : index non valide", status=400)
-
-        result_allers = json.loads(request.session.get("results_aller", "[]"))
-        result_retours = json.loads(request.session.get("results_retour", "[]"))
-
-        if index >= len(result_allers):
-            return HttpResponse("Erreur : index hors limite", status=400)
-        print("result_allers :", result_allers)
-        selected_aller = result_allers[index]
-        print("selected_aller :", selected_aller)
-        selected_retour = result_retours[index] if index < len(result_retours) else {}
-
-        #  Convertir les string en datetime
-        selected_aller["date_depart"] = datetime.fromisoformat(selected_aller["date_depart"]).strftime("%Y-%m-%d")
-        selected_aller["date_arrivee"] = datetime.fromisoformat(selected_aller["date_arrivee"]).strftime("%Y-%m-%d")
-
-        if "date_retour" in selected_retour and "date_retour_arrivee" in selected_retour:
-
-            selected_retour["date_retour"] = datetime.fromisoformat(selected_retour["date_retour"]).strftime("%Y-%m-%d")
-            selected_retour["date_retour_arrivee"] = datetime.fromisoformat(selected_retour["date_retour_arrivee"]).strftime("%Y-%m-%d")
+        if voyage_retour:
+            request.session['selected_retour'] = json.dumps([voyage_retour], default=str)
+            request.session['voyage_id_retour'] = voyage_retour["id"]
         else:
-            selected_retour["date_retour"] = None
-            selected_retour["date_retour_arrivee"] = None
-
-        # 🔎 Vérification stricte des champs obligatoires
-        required_fields = ["ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire"]
-        for field in required_fields:
-            if field not in selected_aller or selected_aller[field] in [None, ""]:
-                return HttpResponse(f"Erreur : champ aller manquant ou vide : {field}", status=400)
-
-        # Enregistrement des infos aller dans la session
-        for key in required_fields:
-            request.session[key] = selected_aller[key]
-
-        # ✅ Gestion du retour si existant
-        if all(k in selected_retour for k in ["ville_depart", "ville_arrivee", "date_retour", "date_retour_arrivee"]):
-            request.session["ville_depart_retour"] = selected_retour["ville_depart"]
-            request.session["ville_arrive_retour"] = selected_retour["ville_arrivee"]
-            request.session["date_retour"] = selected_retour["date_retour"]
-            request.session["date_retour_arrivee"] = selected_retour["date_retour_arrivee"]
-            request.session["prix_retour"] = selected_retour.get("prix_unitaire", "0")
-        else:
-            request.session["ville_depart_retour"] = ""
-            request.session["ville_arrive_retour"] = ""
-            request.session["date_retour"] = ""
-            request.session["date_retour_arrive"] = ""
-            request.session["prix_retour"] = ""
-
-        # Pour affichage dans le formulaire
-        request.session["selected_aller"] = json.dumps(selected_aller, default=str)
-        request.session["selected_retour"] = json.dumps(selected_retour, default=str)
+            request.session['results_retour'] = json.dumps([], default=str)
 
         return render(request, "html/infos_personnelles.html")
-
     return redirect("home")
+
 
 def reservation(request):
     if request.method == "POST":
@@ -282,13 +292,28 @@ def reservation(request):
         adresse = request.POST.get("adresse")
 
         # Champs aller
+        selected_aller_json = request.session.get("selected_aller")
+
+        if selected_aller_json:
+            try:
+                selected_aller = json.loads(selected_aller_json)[0]  # On prend le premier élément de la liste
+            except Exception as e:
+                print("Erreur lors du json.loads :", e)
+                selected_aller = {}
+
+        else:
+            selected_aller = {}
+        
+        print("selected_aller", selected_aller)
+
+
         aller = {
-            "ville_depart": request.session.get("ville_depart"),
-            "ville_arrivee": request.session.get("ville_arrivee"),
-            "date_depart": request.session.get("date_depart"),
-            "date_arrivee": request.session.get("date_arrivee"),
-            "prix_unitaire": request.session.get("prix_unitaire")
-        }
+                    "ville_depart": selected_aller.get("ville_depart"),
+                    "ville_arrivee": selected_aller.get("ville_arrivee"),
+                    "date_depart": selected_aller.get("date_depart").split(" ")[0] if selected_aller.get("date_depart") else None,
+                    "date_arrivee": selected_aller.get("date_arrivee").split(" ")[0] if selected_aller.get("date_arrivee") else None,
+                    "prix_unitaire": selected_aller.get("prix_unitaire"),
+                }
 
         # Champs retour (facultatif)
         retour = {
@@ -389,6 +414,9 @@ def finaliser_reservation(request):
         adultes = request.POST.get("adultes")
         enfants = request.POST.get("enfants")
         bagages = request.POST.get("bagages")
+        print("les adultes", adultes)
+        print("les enfants", enfants)
+        print("les bagages", bagages)
 
         # Sauvegarde dans la session
         request.session["ville_depart"] = ville_depart
@@ -460,41 +488,123 @@ def finaliser_reservation(request):
     return redirect("reservation")
 
 def generate_pdf(request):
+
+    # Création ou récupération du User
+    email = request.session.get("email")
+    prenom = request.session.get("prenom")
+    nom = request.session.get("nom")
+
+    user, _ = User.objects.get_or_create(
+        email=email,
+        defaults={"first_name": prenom, "last_name": nom, "email": email}
+    )
+
+    voyageur, _ = Voyageurs.objects.get_or_create(
+    user=user,
+    defaults={
+        "firstname": prenom,
+        "name": nom,
+        "email": email,
+        "password_reset_required": True  # ✅ obligatoire à la 1ère connexion
+    }
+    )
+    voyageur.password_reset_required = True
+    voyageur.save()
+
+    # === Création de l'utilisateur avec mot de passe provisoire ===
+    mot_de_passe_temporaire = User.objects.make_random_password(length=10)
+    request.session["mot_de_passe_temp"] = mot_de_passe_temporaire
+    user.set_password(mot_de_passe_temporaire)
+    user.save()
+    request.session["mot_de_passe_temp"] = mot_de_passe_temporaire 
+
+    # Récupération des voyages aller et retour (si présents)
+    voyage_ids = [request.session.get("voyage_id_aller"), request.session.get("voyage_id_retour")]
+
+    for vid in voyage_ids:
+        if vid:
+            try:
+                
+                voyage = Voyages.objects.get(id=vid)
+
+                # 🔐 Création de la réservation (évite les doublons)
+                Reservation.objects.get_or_create(
+                    voyageur=voyageur,
+                    voyage=voyage
+                )
+                # === Connexion automatique au tchat avec chauffeur du voyage ===
+                chauffeur = voyage.transporteurs
+                if chauffeur:
+                    chat_exists = MessageClientChauffeur.objects.filter(
+                        voyageur=voyageur,
+                        transporteur=chauffeur
+                    ).exists()
+
+                    if not chat_exists:
+                        MessageClientChauffeur.objects.create(
+                            voyageur=voyageur,
+                            transporteur=chauffeur,
+                            contenu="Bonjour, j’ai réservé votre trajet.",
+                            expediteur="voyageur"
+                        )
+            except Voyages.DoesNotExist:
+                print(f"Voyage ID {vid} non trouvé")
+
+        # Contexte (inchangé)
     context = {
-        "titre": "Preuve de la reservatioin de voyage",
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "heure": datetime.now().strftime("%H:%M"),
-        "Reserveur": request.session.get("nom", "Inconnu") + " " + request.session.get("prenom", "Inconnu"),
+        "titre": "Preuve de la reservation de voyage",
+        "date": now().strftime("%Y-%m-%d"),
+        "heure": now().strftime("%H:%M"),
+        "Reserveur": request.session.get("nom", "Inconnu") + " " + request.session.get("prenom", ""),
         "email": request.session.get("email", "Inconnu"),
         "telephone": request.session.get("telephone", "Inconnu"),
         "adresse": request.session.get("adresse", "Inconnue"),
-        "objectif": "Achat d'un voyage à l'interieur du Gabon",
-        "ville_depart": request.session.get("ville_depart", "Inconnu"),
+        "ville_depart": request.session.get("ville_depart", "Inconnue"),
         "ville_arrivee": request.session.get("ville_arrivee", "Inconnue"),
         "date_depart": request.session.get("date_depart", "Inconnue"),
         "date_arrivee": request.session.get("date_arrivee", "Inconnue"),
-        "ville_depart_retour": request.session.get("ville_depart_retour", "Inconnue"),
-        "ville_arrivee_retour": request.session.get("ville_arrivee_retour", "Inconnue"),
-        "date_retour_depart": request.session.get("date_retour_depart", "Inconnue"),
-        "date_retour_arrivee": request.session.get("date_retour_arrivee", "Inconnue"),
+        "ville_depart_retour": request.session.get("ville_depart_retour", ""),
+        "ville_arrivee_retour": request.session.get("ville_arrivee_retour", ""),
+        "date_retour_depart": request.session.get("date_retour", ""),
+        "date_retour_arrivee": request.session.get("date_retour_arrivee", ""),
         "nombre_adultes": request.session.get("adultes", "0"),
         "nombre_enfants": request.session.get("enfants", "0"),
         "nombre_bagages": request.session.get("bagages", "0"),
         "prix_aller": request.session.get("prix_unitaire", "0 fcfa"),
         "prix_retour": request.session.get("prix_retour", "0 fcfa"),
-        "prix_total": int(request.session.get("prix_unitaire") or "0") + int(request.session.get("prix_retour") or "0"),
-        "remarques": "Le voyage a été réservé avec succès. Merci de votre confiance.",
+        "prix_total": int(request.session.get("prix_unitaire", "0") or 0) + int(request.session.get("prix_retour", "0") or 0),
+        "mot_de_passe_temp": request.session.get("mot_de_passe_temp", "Non généré"),
+        "remarques": "Le voyage a été réservé avec succès. Merci de votre confiance."
+        
     }
-
+    # Génération du PDF
     template = get_template("html/recap_pdf.html")
     html = template.render(context)
-    response = HttpResponse(content_type="application/pdf")
-    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    filename = f"ticket_{now().strftime('%Y%m%d%H%M%S')}.pdf"
+    filepath = os.path.join(settings.MEDIA_ROOT, "tickets", filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+    with open(filepath, "wb") as f:
+        pisa_status = pisa.CreatePDF(html, dest=f)
+
     if pisa_status.err:
         return HttpResponse("Erreur lors de la génération du PDF")
-    return response
 
+    # Sauvegarde du PDF dans le voyage aller uniquement
+    # ✅ Enregistrer le PDF dans le modèle Voyageurs
+    try:
+        with open(filepath, "rb") as f:
+            voyageur.ticket_pdf.save(filename, File(f), save=True)
+    except Exception as e:
+        print(f"Erreur lors de l'enregistrement du PDF pour le voyageur : {e}")
 
+    # Téléchargement du fichier
+    with open(filepath, "rb") as f:
+        response = HttpResponse(f.read(), content_type="application/pdf")
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    
 
 @staff_member_required
 def import_excel_view(request):
@@ -519,63 +629,118 @@ def import_excel_view(request):
     
     return render(request, "admin/global_excel_import.html", {"form": form})
 
+
+
+# la vue change de mot de passe est une vue qui concerne que le voyageur
+# ==========================
+# 💬 Changer le mot de passe
+# ==========================
+
+@login_required
+
+@login_required
+def changer_mot_de_passe(request):
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if new_password != confirm_password:
+            messages.error(request, "Les mots de passe ne correspondent pas.")
+            return redirect("changer_mot_de_passe")
+
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+
+        # Désactive le flag si c'est un voyageur ou un chauffeur
+        if hasattr(user, 'voyageurs'):
+            user.voyageurs.password_reset_required = False
+            user.voyageurs.save()
+            next_login = "login_user"
+        elif hasattr(user, 'transporteurs'):
+            user.transporteurs.password_reset_required = False
+            user.transporteurs.save()
+            next_login = "login_chauffeur"
+        else:
+            next_login = "user_login"  # fallback
+
+        messages.success(request, "Mot de passe modifié avec succès. Veuillez vous reconnecter.")
+        return redirect(next_login)
+    # ⬇️ Ajout du contexte pour afficher le rôle dans le template
+    user = request.user
+    role = None
+    if hasattr(user, 'voyageurs'):
+        role = "voyageur"
+    elif hasattr(user, 'transporteurs'):
+        role = "chauffeur"
+
+    return render(request, "user_app/change_password.html", {"role": role})
 # les vues pour les chauffeurs
 
 # ==========================
 # 💬 Tchat Vue
 # ==========================
 
+
 @login_required
-def tchat_vue(request, transporteur_id=None):
+def tchat(request, transporteur_id):
     user = request.user
-    try:
-        voyageur = Voyageurs.objects.get(user=user)
-        role = 'voyageur'
-    except Voyageurs.DoesNotExist:
-        voyageur = None
+    voyageur = None
+    transporteur = None
+    messages = None
 
-    try:
-        chauffeur = Transporteurs.objects.get(user=user)
-        role = 'transporteur'
-    except Transporteurs.DoesNotExist:
-        chauffeur = None
-
-    if role == 'voyageur':
+    if hasattr(user, 'voyageurs'):
+        voyageur = user.voyageurs
         transporteur = get_object_or_404(Transporteurs, id=transporteur_id)
-        messages = MessageClientChauffeur.objects.filter(
-            voyageur=voyageur,
-            transporteur=transporteur
-        ).order_by('horodatage')
-    else:
-        transporteur = chauffeur
-        messages = MessageClientChauffeur.objects.filter(
-            transporteur=chauffeur
-        ).order_by('horodatage')
 
-    if request.method == 'POST':
-        contenu = request.POST.get('contenu')
-        if contenu:
-            expediteur = role
-            MessageClientChauffeur.objects.create(
-                voyageur=voyageur if voyageur else request.POST.get('voyageur_id'),
-                transporteur=transporteur,
-                contenu=contenu,
-                expediteur=expediteur
-            )
+        messages = MessageClientChauffeur.objects.filter(
+            voyageurs=voyageur, transporteurs=transporteur
+        ).order_by('timestamp')
+
+        if request.method == 'POST':
+            contenu = request.POST.get("contenu")
+            if contenu.strip():
+                MessageClientChauffeur.objects.create(
+                    voyageurs=voyageur,
+                    transporteurs=transporteur,
+                    message=contenu,
+                    sender="voyageur"
+                )
             return redirect('tchat', transporteur_id=transporteur.id)
 
-    context = {
-        'messages': messages,
-        'transporteur': transporteur,
-        'role': role,
-        'voyageur': voyageur,
-    }
-    return render(request, 'chat.html', context)
+    elif hasattr(user, 'transporteurs'):
+        transporteur = user.transporteurs
+        voyageur_id = request.GET.get("voyageur_id")
+        voyageur = get_object_or_404(Voyageurs, id=voyageur_id)
 
+        messages = MessageClientChauffeur.objects.filter(
+            voyageurs=voyageur, transporteurs=transporteur
+        ).order_by('timestamp')
+
+        if request.method == 'POST':
+            contenu = request.POST.get("contenu")
+            if contenu.strip():
+                MessageClientChauffeur.objects.create(
+                    voyageurs=voyageur,
+                    transporteurs=transporteur,
+                    message=contenu,
+                    sender="chauffeur"
+                )
+            return redirect(f"/tchat/{transporteur.id}/?voyageur_id={voyageur.id}")
+
+    else:
+        return redirect("user_login")  # fallback si aucun rôle détecté
+
+    return render(request, 'user_app/chat_responsive.html', {
+        'voyageur': voyageur,
+        'transporteur': transporteur,
+        'messages': messages,
+    })
 
 # ==========================
 # 👤 Auth Utilisateur & Chauffeur
 # ==========================
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -585,6 +750,10 @@ def user_login(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             login(request, user)
+
+            if getattr(settings, "DEBUG_SKIP_2FA", False):
+                return redirect('dashboard')  # skip 2FA pour test local
+
             code = str(random.randint(100000, 999999))
             VerificationCode.objects.update_or_create(
                 user=user,
@@ -592,17 +761,13 @@ def user_login(request):
             )
             request.session['pre_auth_user'] = user.id
             return redirect('verify_code')
-    return render(request, 'user_app/usr_login.html')
+        else:
+            # 🔥 Ajout d'un message d'erreur clair
+            messages.error(request, "Email ou mot de passe invalide. Veuillez réessayer.")
+            return render(request, 'user_app/usr_login.html')
 
-def verify_code(request):
-    user_id = request.session.get('pre_auth_user')
-    if request.method == 'POST':
-        code = request.POST['code']
-        if VerificationCode.objects.filter(user_id=user_id, code=code).exists():
-            user = VerificationCode.objects.get(user_iduser_id=user_id).user
-            login(request, user)
-            return redirect('dashboard')
-    return render(request, 'user_app/usr_verify_code.html')
+        messages.error(request, "Email ou mot de passe invalide.")
+    return render(request, 'user_app/usr_login.html')
 
 
 # ==========================
@@ -618,23 +783,91 @@ def login_chauffeur(request):
         if user is not None and user.is_staff:
             login(request, user)
             code = str(random.randint(100000, 999999))
+            print(code)
             VerificationCode.objects.update_or_create(
-                user_iduser=user,
+                user=user,
                 defaults={'code': code}
             )
             request.session['pre_auth_chauffeur'] = user.id
             return redirect('chauffeur_app/verify_chauffeur')
     return render(request, 'chauffeur_app/cha_login.html')
 
-def verify_chauffeur(request):
-    user_id = request.session.get('pre_auth_chauffeur')
-    if request.method == 'POST':
-        code = request.POST['code']
-        if VerificationCode.objects.filter(user_iduser_id=user_id, code=code).exists():
-            user = VerificationCode.objects.get(user_iduser_id=user_id).user
+
+def verify_code(request):
+    print("🟡 Entrée dans verify_code")
+
+    # 🔧 Mode debug : désactiver 2FA pour tests locaux
+    if getattr(settings, "DEBUG_SKIP_2FA", False):
+        print("🛠️ DEBUG_SKIP_2FA actif")
+        user_id = request.session.get("pre_auth_user")
+        print("🔎 ID utilisateur (session) :", user_id)
+
+        if user_id:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.get(id=user_id)
             login(request, user)
-            return redirect('dashboard_chauffeur')
-    return render(request, 'chauffeur_app/cha_verify_code.html')
+            print("✅ Utilisateur connecté :", user)
+
+            # 🔍 Vérifie le rôle
+            if Voyageurs.objects.filter(user=user).exists():
+                print("🎯 Rôle : VOYAGEUR")
+                return redirect("dashboard")
+            elif Transporteurs.objects.filter(user=user).exists():
+                print("🎯 Rôle : TRANSPORTEUR")
+                return redirect("dashboard_chauffeur")
+
+            print("🚨 Aucun rôle trouvé pour cet utilisateur")
+            messages.error(request, "Utilisateur sans rôle associé.")
+            return redirect("login")
+
+    # 🔐 Validation du code saisi (POST)
+    if request.method == "POST":
+        print("📩 POST reçu - tentative de vérification du code")
+        code_saisi = request.POST.get("code")
+        user_id = request.session.get("pre_auth_user")
+        print("🔍 Code saisi :", code_saisi)
+        print("🔍 ID utilisateur (session) :", user_id)
+
+        if not user_id:
+            print("❌ Session expirée")
+            messages.error(request, "Session expirée. Veuillez vous reconnecter.")
+            return redirect("login")
+
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+        print("✅ Utilisateur récupéré :", user)
+
+        try:
+            verif = VerificationCode.objects.get(user=user)
+            print("✅ Code de vérification trouvé :", verif.code)
+        except VerificationCode.DoesNotExist:
+            print("❌ Code de vérification non trouvé")
+            messages.error(request, "Code non trouvé. Veuillez vous reconnecter.")
+            return redirect("login")
+
+        if code_saisi == verif.code:
+            print("✅ Code correct")
+            login(request, user)
+            del request.session["pre_auth_user"]
+
+            # Redirection selon le rôle
+            if Voyageurs.objects.filter(user=user).exists():
+                print("🎯 Rôle détecté : VOYAGEUR")
+                return redirect("dashboard")
+            elif Transporteurs.objects.filter(user=user).exists():
+                print("🎯 Rôle détecté : TRANSPORTEUR")
+                return redirect("dashboard_chauffeur")
+            else:
+                print("❌ Rôle non détecté dans la base")
+                messages.error(request, "Rôle inconnu. Contactez l’administrateur.")
+                return redirect("login")
+        else:
+            print("❌ Code incorrect")
+            messages.error(request, "Code incorrect. Réessayez.")
+
+    return render(request, "user_app/usr_verify_code.html")
 
 
 # ==========================
@@ -642,107 +875,163 @@ def verify_chauffeur(request):
 # ==========================
 
 @login_required
+
 def dashboard(request):
-    travels = Voyages.objects.filter(transporteurs__user=request.user)
-    total = sum(v.prix_unitaire for v in travels)
-    return render(request, 'user_app/usr_dashboard.html', {
-        'user': request.user,
-        'travel_count': travels.count(),
-        'total_spent': total
-    })
+    user = request.user
+    voyageur = Voyageurs.objects.get(user=user)
+
+    # Toutes les réservations de ce voyageur
+    reservations = Reservation.objects.filter(voyageur=voyageur).select_related('voyage', 'voyage__transporteurs')
+
+    # Nombre total de voyages
+    travel_count = reservations.count()
+
+    # Total dépensé
+    total_spent = sum(r.voyage.prix_unitaire for r in reservations)
+
+    # Prochain voyage
+    next_travel = (
+        reservations.filter(voyage__date_depart__gte=now())
+        .order_by('voyage__date_depart')
+        .first()
+    )
+
+    # 5 derniers voyages
+    recent_travels = reservations.order_by('-voyage__date_depart')[:5]
+
+    # Données pour le graphique (dépenses par mois)
+    monthly_spending = {}
+    for res in reservations:
+        key = res.voyage.date_depart.strftime('%Y-%m')
+        monthly_spending[key] = monthly_spending.get(key, 0) + res.voyage.prix_unitaire
+    
+
+    # Convertir les données en listes pour le graphique
+
+    if len(list(monthly_spending.keys())) > 0:
+        depense_dates = list(monthly_spending.keys())
+        depense_values = list(monthly_spending.values())
+    else :
+        depense_dates = ['2025-06-01', '2025-06-02', '2025-06-03']
+        depense_values = [100, 200, 150]
+
+    context = {
+        "user": user,
+        "travel_count": travel_count,
+        "total_spent": total_spent,
+        "next_travel": next_travel.voyage if next_travel else None,
+        "recent_travels": [r.voyage for r in recent_travels],
+        "ticket_path": voyageur.ticket_pdf.url if voyageur.ticket_pdf else None,
+        "depense_dates": json.dumps(depense_dates),
+        "depense_values": json.dumps(depense_values),
+    }
+    return render(request, "user_app/usr_dashboard.html", context)
+
 
 @login_required
 def dashboard_chauffeur(request):
-    travels = Voyages.objects.filter(transporteurs__user=request.user)
-    total = sum(v.prix_unitaire for v in travels)
-    return render(request, 'chauffeur_app/cha_dashboard.html', {
-        'chauffeur': request.user,
-        'travel_count': travels.count(),
-        'total_earned': total
-    })
-
-@login_required
-def tchat_vue(request, transporteur_id=None):
     user = request.user
+    chauffeur = get_object_or_404(Transporteurs, user=user)
 
-    # Vérifie qui est connecté
-    try:
-        voyageur = Voyageurs.objects.get(user=user)
-        role = 'voyageur'
-    except Voyageurs.DoesNotExist:
-        voyageur = None
+    # Voyages du chauffeur
+    voyages = Voyages.objects.filter(transporteurs=chauffeur).order_by('-date_depart')
 
-    try:
-        chauffeur = Transporteurs.objects.get(user=user)
-        role = 'transporteur'
-    except Transporteurs.DoesNotExist:
-        chauffeur = None
+    # 5 derniers voyages
+    last_5_voyages = voyages[:5]
 
-    # Si client : il doit voir un chauffeur précis
-    if role == 'voyageur':
-        transporteur = get_object_or_404(Transporteurs, id=transporteur_id)
-        messages = MessageClientChauffeur.objects.filter(
-            voyageur=voyageur,
-            transporteur=transporteur
-        ).order_by('horodatage')
-    else:
-        transporteur = chauffeur
-        messages = MessageClientChauffeur.objects.filter(
-            transporteur=chauffeur
-        ).order_by('horodatage')
+    # Total des gains
+    total_earned = sum(v.prix_unitaire for v in voyages)
 
-    # Traitement envoi
-    if request.method == 'POST':
-        contenu = request.POST.get('contenu')
-        if contenu:
-            expediteur = role
-            message_obj = MessageClientChauffeur.objects.create(
-                voyageur=voyageur if voyageur else request.POST.get('voyageur_id'),
-                transporteur=transporteur,
-                contenu=contenu,
-                expediteur=expediteur
-            )
+    # Liste des voyageurs associés
+    associations = Asso_trans_voyageur.objects.filter(transporteurs=chauffeur)
+    voyageurs = [asso.voyageurs for asso in associations]
 
-            # ✅ Notification par e-mail
-            if expediteur == 'voyageur':
-                destinataire = transporteur.user.email
-            else:
-                destinataire = voyageur.user.email
-
-            send_mail(
-                subject="Nouveau message reçu",
-                message=f"Vous avez reçu un message de {expediteur} :\\n\\n{message_obj.contenu}",
-                from_email=None,
-                recipient_list=[destinataire],
-                fail_silently=True
-            )
-            return redirect('tchat', transporteur_id=transporteur.id)
+    # Messagerie attachée
+    tchat_links = [
+        {
+            'voyageur': v,
+            'url': f"/tchat/{chauffeur.id}/?voyageur_id={v.id}"
+        }
+        for v in voyageurs
+    ]
 
     context = {
-        'messages': messages,
-        'transporteur': transporteur,
-        'role': role,
-        'voyageur': voyageur,
+        'chauffeur': chauffeur,
+        'travel_count': voyages.count(),
+        'total_earned': total_earned,
+        'last_voyages': last_5_voyages,
+        'tchat_links': tchat_links,
     }
-    return render(request, 'user_app/chat_responsive.html', context)
 
+    return render(request, "chauffeur_app/cha_dashboard.html", context)
+
+# ✅ Télécharger liste passagers en PDF
+@login_required
+def telecharger_passagers_pdf(request):
+    user = request.user
+
+    # Sécurité : l'utilisateur doit être un transporteur
+    try:
+        chauffeur = Transporteurs.objects.get(user=user)
+    except Transporteurs.DoesNotExist:
+        raise PermissionDenied("Accès refusé. Réservé aux chauffeurs.")
+
+    # Récupérer les voyageurs associés via la table de liaison
+    associations = Asso_trans_voyageur.objects.filter(transporteurs=chauffeur)
+    voyageurs = [asso.voyageurs for asso in associations]
+
+    # Création du PDF
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer)
+    p.setFont("Helvetica", 12)
+    p.drawString(100, 800, f"Liste des passagers associés à {chauffeur.firstname} {chauffeur.name}")
+
+    y = 780
+    for v in voyageurs:
+        line = f"- {v.firstname} {v.name} ({v.email})"
+        p.drawString(100, y, line)
+        y -= 20
+        if y < 50:  # Sauter à une nouvelle page si plus de place
+            p.showPage()
+            p.setFont("Helvetica", 12)
+            y = 800
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    return FileResponse(buffer, as_attachment=True, filename="liste_passagers.pdf")
 
 
 
 def register_user(request):
     if request.method == 'POST':
         role = request.POST.get('role')
-        name = request.POST.get('name')
-        firstname = request.POST.get('firstname')
+        name = request.POST.get('nom')
+        firstname = request.POST.get('prenom')
         email = request.POST.get('email')
+
+        if not all([role, name, firstname, email]):
+            messages.error(request, "Veuillez remplir tous les champs obligatoires.")
+            return redirect('register_user')
+
+        # Création de l'utilisateur Django pour login futur
+        password_temp = request.POST.get('password')  #get_random_string(10)
+        user = User.objects.create_user(email=email, password=password_temp)
+        user.first_name = firstname
+        user.last_name = name
+        user.role = role
+        user.save()
 
         if role == 'voyageur':
             Voyageurs.objects.create(
+                user=user,
                 name=name,
                 firstname=firstname,
                 email=email
             )
             messages.success(request, "Voyageur enregistré avec succès.")
+
         elif role == 'chauffeur':
             date_de_naissance = request.POST.get('date_de_naissance')
             adresse = request.POST.get('adresse')
@@ -750,7 +1039,12 @@ def register_user(request):
             permis = request.POST.get('permis')
             phone = request.POST.get('phone')
 
+            if not all([date_de_naissance, adresse, ville, permis, phone]):
+                messages.error(request, "Tous les champs sont obligatoires pour le chauffeur.")
+                return redirect('register_user')
+
             Transporteurs.objects.create(
+                user=user,
                 name=name,
                 firstname=firstname,
                 email=email,
@@ -763,8 +1057,10 @@ def register_user(request):
             messages.success(request, "Chauffeur enregistré avec succès.")
         else:
             messages.error(request, "Rôle invalide.")
+            messages.error(request, "Email ou mot de passe incorrect.")
+            return redirect('register_user')
 
-        return redirect('login_user')
+        return redirect('user_login')
 
     return render(request, 'user_app/register_user.html')
 
@@ -846,8 +1142,24 @@ def question(request):
     return render(request, 'html/FAQ.html')
 
 def contact(request):
+    if request.method == "POST":
+        nom = request.POST.get("nom")
+        email = request.POST.get("email")
+        message = request.POST.get("message")
 
-    return render(request, 'html/contact.html')
+        if nom and email and message:
+            send_mail(
+                subject=f"Contact depuis le site de {nom}",
+                message=message,
+                from_email=email,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+            )
+            messages.success(request, "Votre message a bien été envoyé !")
+            return redirect("contact")
+        else:
+            messages.error(request, "Veuillez remplir tous les champs.")
+
+    return render(request, "html/contact.html")
 
 
 def comming_soon(request):

@@ -1,0 +1,55 @@
+
+/* 📱 RESPONSIVE CHOIX_DU_VOYAGE.HTML */
+
+@media screen and (max-width: 768px) {
+    .container-section-1 {
+        padding: 10px;
+        margin: 0;
+    }
+
+    .annonce, .annonce-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .annonce-result {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+
+    .ligne-haut, .info-ligne {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .btn-continu, .continue {
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    .price, .prix {
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .bloc {
+        width: 100% !important;
+        margin: 10px 0;
+    }
+
+    .pagination-controls,
+    .pagination-controls-retour {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .calendar,
+    .search-box,
+    .inputs {
+        width: 100% !important;
+    }
+
+    .notice {
+        font-size: 0.9rem;
+    }
+}

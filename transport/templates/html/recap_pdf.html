@@ -112,5 +112,8 @@
     
     <div class="fin"><strong>💶 Financement total :</strong> {{ prix_total }} fcfa</div>
     <div class="rem"><strong>📝 Remarques :</strong> {{ remarques }}</div>
+    {% if request.session.mot_de_passe_temp %}
+    <p><strong>Mot de passe provisoire :</strong> {{ request.session.mot_de_passe_temp }}</p>
+    {% endif %}
 </body>
 </html>

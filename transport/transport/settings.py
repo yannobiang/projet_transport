@@ -28,12 +28,16 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+# MEDIA_ROOT is the directory where uploaded files will be stored
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-dc9^1@%)=o7foy1^1-ki8ldu=vffn0jm!fmwyjfh_yye@=lxx^'
+DEBUG_SKIP_2FA = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

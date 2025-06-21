@@ -1,0 +1,53 @@
+
+/* Réglages globaux pour petits écrans */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.3em;
+        text-align: center;
+    }
+
+    .form-container, .reservation-form {
+        width: 100% !important;
+        padding: 15px !important;
+        box-sizing: border-box;
+    }
+
+    .form-group, .input-field {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .form-group label,
+    .input-field label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input,
+    .input-field input,
+    .form-group select,
+    .input-field select {
+        width: 100%;
+        padding: 10px;
+        font-size: 1em;
+    }
+
+    .btn, .submit-button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1em;
+        margin-top: 10px;
+    }
+
+    .row, .columns {
+        display: block;
+        width: 100%;
+    }
+}
