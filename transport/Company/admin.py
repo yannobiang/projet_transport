@@ -1,15 +1,37 @@
 from django.contrib import admin
-from Company.models import (Transporteurs, Voyageurs, 
+from Company.models import (Transporteurs, Voyageurs, CustomUser,
                             Asso_trans_voyageur, Voyages,
-                            Compagnie, Transports)
+                            Compagnie, Transports, HistoriqueImport)
 from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import ExcelImportForm
-
-
+from .forms import ViderTableForm
+from django.apps import apps
 from import_excel import FillData  # ton fichier existant
+
+
+
+
+@admin.register(HistoriqueImport)
+class HistoriqueImportAdmin(admin.ModelAdmin):
+    list_display = ("fichier", "utilisateur", "date_import")
+    list_filter = ("utilisateur", "date_import")
+    search_fields = ("fichier",)
+# Remplacer tous les enregistrements admin
+
+class AdminTransports(admin.ModelAdmin):
+    list_display = (
+        "marque",
+        "matricule",
+        "nombre_de_place",
+        "compagnie",
+        "get_voyages"
+    )
+
+    def get_voyages(self, obj):
+        return ", ".join([str(v) for v in obj.voyages_set.all()])
 
 # Register your models here.
 class AdminTransporteurs(admin.ModelAdmin) :
@@ -30,24 +52,42 @@ class AdminVoyageurs(admin.ModelAdmin) :
 class AdminAsso_trans_voyageur(admin.ModelAdmin) :
     list_display = ("voyageurs",  "transporteurs")
 
-class AdminVoyages(admin.ModelAdmin) :
-    list_display = ("date_depart",
-    "date_arrivee", 
-    "ville_depart",
-    "ville_arrivee",
-    "prix_unitaire",
-    "transporteurs")
+class AdminVoyages(admin.ModelAdmin):
+    list_display = (
+        "date_depart",
+        "date_arrivee", 
+        "ville_depart",
+        "ville_arrivee",
+        "prix_unitaire",
+        "get_transports_lies"
+    )
 
-class AdminCompagnie(admin.ModelAdmin) :
-    list_display = ("name",
-    "siren",
-    "transporteurs")
-class AdminTransports(admin.ModelAdmin) :
-    list_display = ("marque",
-    "matricule",
-    "nombre_de_place",
-    "voyages",
-    "compagnie")
+    def get_transports_lies(self, obj):
+        return ", ".join([f"{t.marque} ({t.matricule})" for t in obj.transports.all()])
+    get_transports_lies.short_description = "Transports liés"
+
+class AdminCompagnie(admin.ModelAdmin):
+    list_display = ("name", "siren", "get_transporteurs")
+
+    def get_transporteurs(self, obj):
+        return ", ".join([
+            f"{t.name} {t.firstname}"
+            for t in Transporteurs.objects.filter(compagnie=obj)
+        ])
+    get_transporteurs.short_description = "Transporteurs associés"
+
+class AdminVoyages(admin.ModelAdmin):
+    list_display = (
+        "date_depart", "date_arrivee", "ville_depart",
+        "ville_arrivee", "prix_unitaire", "get_transports"
+    )
+
+    def get_transports(self, obj):
+        return ", ".join([
+            f"{t.marque} ({t.matricule})"
+            for t in Transports.objects.filter(voyages=obj)
+        ])
+    get_transports.short_description = "Transports liés"
 
 
 class CustomImportAdmin(admin.ModelAdmin):
@@ -80,10 +120,11 @@ class CustomImportAdmin(admin.ModelAdmin):
             "opts": self.model._meta,
         }
         return render(request, "admin/excel_import.html", context)
+ 
 
 admin.site.register(Transporteurs, CustomImportAdmin)
 admin.site.register(Voyageurs, AdminVoyageurs)
+admin.site.register(Transports, AdminTransports)
 admin.site.register(Asso_trans_voyageur, AdminAsso_trans_voyageur)
 admin.site.register(Voyages, AdminVoyages)
 admin.site.register(Compagnie, AdminCompagnie)
-admin.site.register(Transports, AdminTransports)

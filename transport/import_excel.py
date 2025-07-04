@@ -11,33 +11,49 @@ from Company.models import Transporteurs, Voyageurs, Voyages, Compagnie, Transpo
 
 class FillData:
     print(">>>>>> bonne classe importee")
-    def __init__(self, filepath):
+    def __init__(self, filepath, user=None):
         self.filepath = filepath
+        self.user = user
         self.xlsx = pd.read_excel(self.filepath, sheet_name=None)
+
 
     def charge(self):
         self.load_transporteurs()
         self.load_voyageurs()
-        self.load_voyages()
         self.load_compagnie()
         self.load_transports()
         self.load_asso_trans_voyageur()
+        self.load_voyages()
 
-    def load_transporteurs(self):
-        df = self.xlsx.get("dataTransporteurs")
-        if df is not None:
-            for _, row in df.iterrows():
-                Transporteurs.objects.create(
-                    name=row["name"],
-                    firstname=row["firstname"],
-                    date_de_naissance=row["date_de_naissance"],
-                    adresse=row["adresse"],
-                    ville=row["ville"],
-                    permis=row["permis"],
-                    phone=str(row["phone"]),
-                    email=row["email"]
-                )
-            print(f"✅ {len(df)} transporteurs importés.")
+        # Ajout de l’historique après chargement
+        from Company.models import HistoriqueImport
+        feuilles = list(self.xlsx.keys())
+        dimensions = {k: f"{v.shape[0]} lignes × {v.shape[1]} colonnes" for k, v in self.xlsx.items()}
+        HistoriqueImport.objects.create(
+            utilisateur=self.user,
+            fichier=os.path.basename(self.filepath),
+            feuilles_importees=", ".join(feuilles),
+            dimensions=str(dimensions)
+        )
+
+    def load_transports(self):
+        df = self.xlsx.get("dataTransports")
+        if df is None:
+            print("❌ Feuille 'dataTransports' introuvable dans le fichier.")
+            return
+
+        voyages = list(Voyages.objects.all())
+        compagnies = list(Compagnie.objects.all())
+
+        for i, row in df.iterrows():
+            Transports.objects.create(
+                marque=row["marque"],
+                matricule=row["matricule"],
+                nombre_de_place=row["nombre_de_place"],
+                voyages=voyages[i % len(voyages)],
+                compagnie=compagnies[i % len(compagnies)],
+            )
+        print(f"✅ {len(df)} transports importés.")
 
     def load_voyageurs(self):
         df = self.xlsx.get("dataVoyageurs")
@@ -52,18 +68,48 @@ class FillData:
 
     def load_voyages(self):
         df = self.xlsx.get("dataVoyages")
-        if df is not None:
-            transporteurs = list(Transporteurs.objects.all())
-            for i, row in df.iterrows():
-                Voyages.objects.create(
-                    date_depart=row["date_depart"],
-                    date_arrivee=row["date_arrivee"],
-                    ville_depart=row["ville_depart"],
-                    ville_arrivee=row["ville_arrivee"],
-                    prix_unitaire=row["prix_unitaire"],
-                    transporteurs=transporteurs[i % len(transporteurs)]
-                )
-            print(f"✅ {len(df)} voyages importés.")
+        if df is None:
+            print("❌ Feuille 'dataVoyages' introuvable dans le fichier.")
+            return
+
+        transporteurs = list(Transporteurs.objects.all())
+        transports = list(Transports.objects.all())
+
+        if not transporteurs or not transports:
+            print("❌ Pas de transporteurs ou transports pour créer les voyages.")
+            return
+
+        for i, row in df.iterrows():
+            Voyages.objects.create(
+                date_depart=row["date_depart"],
+                date_arrivee=row["date_arrivee"],
+                ville_depart=row["ville_depart"],
+                ville_arrivee=row["ville_arrivee"],
+                prix_unitaire=row["prix_unitaire"],
+                transporteurs=transporteurs[i % len(transporteurs)],
+                transport=transports[i % len(transports)],  # ✅ maintenant correctement lié
+            )
+
+        print(f"✅ {len(df)} voyages importés.")
+    
+    def load_transporteurs(self):
+        df = self.xlsx.get("dataTransporteurs")
+        if df is None:
+            print("❌ Feuille 'dataTransporteurs' introuvable.")
+            return
+        
+        for _, row in df.iterrows():
+            Transporteurs.objects.create(
+                name=row["name"],
+                firstname=row["firstname"],
+                date_de_naissance=row["date_de_naissance"],
+                adresse=row["adresse"],
+                ville=row["ville"],
+                permis=row["permis"],
+                phone=row["phone"],
+                email=row["email"]
+            )
+        print(f"✅ {len(df)} transporteurs importés.")
 
     def load_compagnie(self):
         df = self.xlsx.get("dataCompagnie")
@@ -79,18 +125,25 @@ class FillData:
 
     def load_transports(self):
         df = self.xlsx.get("dataTransports")
-        if df is not None:
-            compagnies = list(Compagnie.objects.all())
-            voyages = list(Voyages.objects.all())
-            for i, row in df.iterrows():
-                Transports.objects.create(
-                    marque=row["marque"],
-                    matricule=row["matricule"],
-                    nombre_de_place=row["nombre_de_place"],
-                    compagnie=compagnies[i % len(compagnies)],
-                    voyages=voyages[i % len(voyages)]
-                )
-            print(f"✅ {len(df)} transports importés.")
+        if df is None:
+            print("❌ Feuille 'dataTransports' introuvable dans le fichier Excel.")
+            return
+
+        compagnies = list(Compagnie.objects.all())
+        transporteurs = list(Transporteurs.objects.all())
+
+        for i, row in df.iterrows():
+           Transports.objects.create(
+                marque=row["marque"],
+                matricule=row["matricule"],
+                nombre_de_place=row["nombre_de_place"],
+                compagnie=compagnies[i % len(compagnies)],
+                transporteur=transporteurs[i % len(transporteurs)],
+                places_disponibles=row["nombre_de_place"],
+                bagages_disponibles=row["bagages_disponibles"],
+                disponible=True
+            )
+        print(f"✅ {len(df)} transports importés.")
     
     def load_asso_trans_voyageur(self):
         

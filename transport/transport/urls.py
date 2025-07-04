@@ -14,20 +14,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+
 from django.urls import path, include
-from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,
-indisponible, question, contact, comming_soon, career, generate_pdf, login_chauffeur,changer_mot_de_passe, dashboard_chauffeur,
+from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,vider_table_view, 
+question, contact, comming_soon, career, generate_pdf, login_chauffeur,changer_mot_de_passe, dashboard_chauffeur,custom_404_view,
 dashboard_chauffeur, user_login, verify_code, dashboard, tchat, import_excel_view, register_user, password_reset_voyageur, password_reset_chauffeur,
-sign_in, sign_up, blog, blog_single, team, privacy, telecharger_passagers_pdf)
+sign_in, sign_up, blog, blog_single, team, privacy, telecharger_passagers_pdf, payment_page, payment_complete)
 
 
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+
 urlpatterns = [
 
     path('admin/import-excel/', import_excel_view, name='import_excel'),
-    path('admin/', admin.site.urls),
+    path("admin/vider-table/", vider_table_view, name="vider-table"),
+    path('admin/', admin.site.urls), # Use the default admin site for the main admin interface
+
 
     path('', home, name='home'),
 
@@ -37,6 +42,9 @@ urlpatterns = [
     path("reservation/", reservation, name="reservation"),
     path("finaliser-reservation/", finaliser_reservation, name="finaliser_reservation"),
     path("pdf-recap/", generate_pdf, name="pdf_recap"),
+
+    path("paiement/", payment_page, name="payment"),
+    path("paiement/complete/", payment_complete, name="payment_complete"),
   
     path('mot-de-passe-voyageur/', password_reset_voyageur, name='password_reset_voyageur'),
     path('mot-de-passe-chauffeur/', password_reset_chauffeur, name='password_reset_chauffeur'),
@@ -56,7 +64,6 @@ urlpatterns = [
     path('register/', register_user, name='register_user'),
 
     path('about/', about, name='about'),
-    path('Erreur 404/', indisponible, name='indisponible'),
     path('FAQ/', question, name='question'),
     path('contact/', contact, name='contact'),
     path('comming soon/', comming_soon, name='comming_soon'),
@@ -72,3 +79,4 @@ urlpatterns = [
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+handler404 = 'Company.views.custom_404_view'

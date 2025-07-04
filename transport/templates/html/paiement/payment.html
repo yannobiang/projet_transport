@@ -1,0 +1,44 @@
+<h2>Paiement sécurisé avec PayPal</h2>
+<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+    <input type="hidden" name="cmd" value="_xclick">
+    <input type="hidden" name="business" value="ton-email-paypal@example.com">
+    <input type="hidden" name="item_name" value="Réservation de voyage">
+    <input type="hidden" name="amount" value="{{ prix_total }}">
+    <input type="hidden" name="currency_code" value="EUR">
+  
+    <!-- Redirection après paiement -->
+    <input type="hidden" name="return" value="http://127.0.0.1:8000/pdf-recap/">
+    <input type="hidden" name="cancel_return" value="http://127.0.0.1:8000/payment-cancelled/">
+  
+    <input type="submit" value="Payer avec PayPal">
+  </form>
+
+<div id="paypal-button-container"></div>
+<script src="https://www.paypal.com/sdk/js?client-id=VOTRE_CLIENT_ID_SANDBOX&currency=EUR"></script>
+<script>
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: '{{ amount }}'
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert('Paiement effectué par ' + details.payer.name.given_name);
+        // Envoie une requête à Django pour enregistrer le paiement
+        fetch("{% url 'payment_complete' %}", {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(details)
+        });
+      });
+    }
+  }).render('#paypal-button-container');
+</script>

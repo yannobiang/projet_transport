@@ -7,13 +7,24 @@ from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from datetime import date, datetime, timedelta, time, timezone
 from django.utils.timezone import now, localdate, make_aware
-from .models import Voyages,MessageClientChauffeur, CustomUser, VerificationCode, Voyageurs, Transporteurs, Reservation, Asso_trans_voyageur
+from django.contrib.admin.views.decorators import staff_member_required
+from django.apps import apps
+from .forms import ViderTableForm
+from openpyxl import load_workbook
+from .models import (Voyages,MessageClientChauffeur, CustomUser, VerificationCode, 
+                     Voyageurs, Transporteurs, Reservation, Asso_trans_voyageur, 
+                     Transports, HistoriqueImport)
+import logging
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+logger = logging.getLogger(__name__)
 from .utils import convert, get_weekday, get_month, safe_format_iso
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from itertools import zip_longest
 import json
+from django.db.models import Exists, OuterRef
 from django.core.files import File
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -31,11 +42,17 @@ from django.http import FileResponse
 from reportlab.pdfgen import canvas
 import io
 from io import BytesIO
+import paypalrestsdk
 
 
 # Create your views here.
 User = get_user_model()
 
+paypalrestsdk.configure({
+    "mode": settings.PAYPAL_MODE,  # "sandbox" ou "live"
+    "client_id": settings.PAYPAL_CLIENT_ID,
+    "client_secret": settings.PAYPAL_SECRET_KEY
+})
 
 def home(request):
 
@@ -47,44 +64,81 @@ def home(request):
 
     if request.method == 'POST':
         dataSend = dict(request.POST)
+        # Supposons que `today` soit un `date` :
+
+        # Convertir en datetime à minuit, puis rendre aware
         today = datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
+
+
+        # Pour yesterday et tomorrow, même logique :
+        yesterday = today - timedelta(days=1)
+        tomorrow = today + timedelta(days=1)
         try:
-            date_retour = datetime.strptime(dataSend['date_retour'][0], "%Y-%m-%d").date()
+            date_retour = datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
+            # datetime.strptime(dataSend['date_retour'][0], "%Y-%m-%d").date()
         except:
             date_retour = None
 
-        yesterday = today - timedelta(days=1)
-        tomorrow = today + timedelta(days=1)
 
         list_of_depart = [col.title() for col in dataSend['depart']]
         list_of_destination = [col.title() for col in dataSend['destination']]
 
+
         if dataSend['trip'][0] == "aller":
-            print("<<<<<<<<<<<<<<<< je suis la<<<<<<<<<<<<<<")
-            result_hier = list(Voyages.objects.filter(date_depart=yesterday)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+            
+            result_hier = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=yesterday,
+                ville_depart__in=list_of_depart,
+                ville_arrivee__in=list_of_destination
+            ).order_by('date_depart').values(
+                "ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"
+            ))
 
-            result = list(Voyages.objects.filter(date_depart=today)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+            result = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=today,
+                ville_depart__in=list_of_depart,
+                ville_arrivee__in=list_of_destination
+            ).order_by('date_depart').values(
+                "ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"
+            ))
 
-            result_demain = list(Voyages.objects.filter(date_depart=tomorrow)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values("ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"))
+            result_demain = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=tomorrow,
+                ville_depart__in=list_of_depart,
+                ville_arrivee__in=list_of_destination
+            ).order_by('date_depart').values(
+                "ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"
+            ))
+            print("filtre sans transport", list(Voyages.objects.filter(
+                date_depart=today,
+                ville_depart__in=list_of_depart,
+                ville_arrivee__in=list_of_destination
+            ).order_by('date_depart').values(
+                "ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"
+            )))
+
+            print("le filtre avec transport", list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=today,
+                ville_depart__in=list_of_depart,
+                ville_arrivee__in=list_of_destination
+            ).order_by('date_depart').values(
+                "ville_depart", "ville_arrivee", "date_depart", "date_arrivee", "prix_unitaire", "id"
+            )))
             
             if len(result) >= 1: 
-                prix_total = result[0]['prix_unitaire'] 
+                prix_total = result[0]['prix_unitaire'] * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             elif len(result) == 0 and len(result_demain) >= 1:
-                prix_total = result_demain[0]['prix_unitaire'] 
+                prix_total = result_demain[0]['prix_unitaire'] * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             elif len(result) == 0 and len(result_demain) == 0 and len(result_hier) >= 1:
-                prix_total = result_hier[0]['prix_unitaire'] 
+                prix_total = result_hier[0]['prix_unitaire'] * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             else:
                 prix_total = 0
 
@@ -136,44 +190,53 @@ def home(request):
                 "num_du_jour_avant": int(list_of_date[2]) - 1,
                 "num_du_jour_apres": int(list_of_date[2]) + 1,
                 "date_depart": dataSend['date_depart'][0],
-                "prix_total": prix_total,
+                "prix_total": prix_total * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) ),
                 "timestamp": int(datetime.timestamp(datetime.now())),
             }
             return render(request, 'html/choix_du_voyage.html', context=context)
 
         elif dataSend['trip'][0] == "retour":
-            result_hier = list(Voyages.objects.filter(date_depart=yesterday)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .exclude(ville_arrivee__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values())
+            result_hier = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=yesterday,
+                ville_depart__in=list_of_depart
+            ).exclude(ville_arrivee__in=list_of_depart)
+            .filter(ville_arrivee__in=list_of_destination)
+            .order_by('date_depart').values())
 
-            result = list(Voyages.objects.filter(date_depart=today)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .exclude(ville_arrivee__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values())
+            result = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=today,
+                ville_depart__in=list_of_depart
+            ).exclude(ville_arrivee__in=list_of_depart)
+            .filter(ville_arrivee__in=list_of_destination)
+            .order_by('date_depart').values())
 
-            result_demain = list(Voyages.objects.filter(date_depart=tomorrow)
-                                         .filter(ville_depart__in=list_of_depart)
-                                         .exclude(ville_arrivee__in=list_of_depart)
-                                         .filter(ville_arrivee__in=list_of_destination)
-                                         .order_by('date_depart')
-                                         .values())
+            result_demain = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_depart=tomorrow,
+                ville_depart__in=list_of_depart
+            ).exclude(ville_arrivee__in=list_of_depart)
+            .filter(ville_arrivee__in=list_of_destination)
+            .order_by('date_depart').values())
 
-            result_retour = list(Voyages.objects.filter(date_arrivee__gt=tomorrow)
-                                         .filter(ville_depart__in=list_of_destination)
-                                         .filter(ville_arrivee__in=list_of_depart)
-                                         .order_by('date_depart')
-                                         .values())
+            result_retour = list(Voyages.objects.filter(
+                transport__places_disponibles__gt=0,
+                transport__isnull=False,
+                date_arrivee__gt=tomorrow,
+                ville_depart__in=list_of_destination,
+                ville_arrivee__in=list_of_depart
+            ).order_by('date_depart').values())
+
             if result :
-                prix_total = result[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+                prix_total = (result[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']) * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             elif not result and result_demain:
-                prix_total = result_demain[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+                prix_total = (result_demain[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']) * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             elif not result and not result_demain and result_hier:
-                prix_total = result_hier[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']
+                prix_total = (result_hier[0]['prix_unitaire'] + result_retour[0]['prix_unitaire']) * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) )
             else:
                 prix_total = 0
 
@@ -247,7 +310,7 @@ def home(request):
                 "date_depart": dataSend['date_depart'][0],
                 "date_retour": dataSend['date_retour'][0],
                 "list_of_day" : [('hier', result_hier), ('aujourdhui', result), ('demain', result_demain)] ,
-                "prix_total": prix_total,
+                "prix_total": prix_total * (int(dataSend['nbr_adl'][0]) + int(dataSend['nbr_enf'][0]) ),
                 "timestamp": int(datetime.timestamp(datetime.now())),
             }
             return render(request, 'html/choix_du_voyage.html', context=context)
@@ -261,7 +324,9 @@ def infos_personnelles(request):
     if request.method == "POST":
         voyage_id_aller = request.POST.get("voyage_id_aller")
         voyage_id_retour = request.POST.get("voyage_id_retour")  # peut être None
-
+        print("voyage_id_aller", voyage_id_aller)
+        print("voyage_id_retour", voyage_id_retour)
+        print(Voyages.objects.filter(id=1602).exists())
         voyage_aller = Voyages.objects.filter(id=voyage_id_aller).values().first()
         voyage_retour = Voyages.objects.filter(id=voyage_id_retour).values().first() if voyage_id_retour else None
         print("voyage_aller", voyage_aller)
@@ -450,11 +515,11 @@ def finaliser_reservation(request):
         request.session["adresse"] = request.POST.get("adresse")
 
         # Construction du récapitulatif
-        prix_aller = request.session.get("prix_unitaire", "0")
-        total = (
-            int(prix_aller) +
-            int(prix_retour) if prix_retour else 0
-        )
+        prix_aller = int(request.session.get("prix_unitaire", "0"))
+        prix_retour = int(prix_retour) if prix_retour else 0
+        total = prix_aller + prix_retour
+        print("client id", settings.PAYPAL_CLIENT_ID)
+        print("secret key", settings.PAYPAL_SECRET_KEY)
 
         reservation_details = {
             "ville_depart": ville_depart,
@@ -467,7 +532,7 @@ def finaliser_reservation(request):
             "date_retour_depart": date_retour_depart,
             "date_retour_arrivee": date_retour_arrivee,
             "prix_retour": prix_retour,
-            "prix_total": f"{total} fcfa",
+            "prix_total": f"{total:.2f}",
             "nom": request.session["nom"],
             "prenom": request.session["prenom"],
             "email": request.session["email"],
@@ -476,20 +541,33 @@ def finaliser_reservation(request):
             "adultes": adultes,
             "enfants": enfants,
             "bagages": bagages,
+            "PAYPAL_CLIENT_ID": settings.PAYPAL_CLIENT_ID,
+            "PAYPAL_SECRET_KEY": settings.PAYPAL_SECRET_KEY,
+            "PAYPAL_MODE": settings.PAYPAL_MODE,
         }
-
-        print("Récapitulatif réservation :", reservation_details)
-        print("=== CONTENU DU CONTEXTE RÉSUMÉ ===")
-        for k, v in reservation_details.items():
-            print(k, ":", v)
 
         return render(request, "html/resume.html", reservation_details)
 
     return redirect("reservation")
 
-def generate_pdf(request):
 
+# Ajout d'un paiement via paypal
+def payment_page(request):
+    return render(request, "html/paiement/payment.html", {"amount": 10.00})  # Montant à payer
+
+@csrf_exempt
+def payment_complete(request):
+    if request.method == "POST":
+        # Ici tu peux ajouter une vérification du paiement si besoin
+        # Tu peux aussi enregistrer un statut "Réservé/Paye" sur le voyage
+        print("✅ Paiement reçu avec succès")
+        return JsonResponse({"status": "success"})
+
+def generate_pdf(request):
     # Création ou récupération du User
+    if request.method != "GET":
+        return HttpResponse("❌ Méthode non autorisée. Cette vue attend une redirection après paiement PayPal.", status=405)
+    
     email = request.session.get("email")
     prenom = request.session.get("prenom")
     nom = request.session.get("nom")
@@ -500,47 +578,68 @@ def generate_pdf(request):
     )
 
     voyageur, _ = Voyageurs.objects.get_or_create(
-    user=user,
-    defaults={
-        "firstname": prenom,
-        "name": nom,
-        "email": email,
-        "password_reset_required": True  # ✅ obligatoire à la 1ère connexion
-    }
+        user=user,
+        defaults={
+            "firstname": prenom,
+            "name": nom,
+            "email": email,
+            "password_reset_required": True
+        }
     )
     voyageur.password_reset_required = True
     voyageur.save()
 
-    # === Création de l'utilisateur avec mot de passe provisoire ===
     mot_de_passe_temporaire = User.objects.make_random_password(length=10)
     request.session["mot_de_passe_temp"] = mot_de_passe_temporaire
     user.set_password(mot_de_passe_temporaire)
     user.save()
-    request.session["mot_de_passe_temp"] = mot_de_passe_temporaire 
 
-    # Récupération des voyages aller et retour (si présents)
+    # Réservation aller et retour
     voyage_ids = [request.session.get("voyage_id_aller"), request.session.get("voyage_id_retour")]
 
     for vid in voyage_ids:
         if vid:
             try:
-                
                 voyage = Voyages.objects.get(id=vid)
 
-                # 🔐 Création de la réservation (évite les doublons)
+                # Réservation unique
                 Reservation.objects.get_or_create(
                     voyageur=voyageur,
                     voyage=voyage
                 )
-                # === Connexion automatique au tchat avec chauffeur du voyage ===
+
+                # ✅ Mise à jour des places et bagages
+                nb_adultes = int(request.session.get("adultes", 0))
+                nb_enfants = int(request.session.get("enfants", 0))
+                nb_bagages = int(request.session.get("bagages", 0))
+                total_passagers = nb_adultes + nb_enfants
+
+                transport = getattr(voyage, "transport", None)
+                if transport:
+                    if (
+                        transport.places_disponibles >= total_passagers
+                        and transport.bagages_disponibles >= nb_bagages
+                    ):
+                        transport.places_disponibles -= total_passagers
+                        transport.bagages_disponibles -= nb_bagages
+
+                        if transport.places_disponibles <= 0 or transport.bagages_disponibles <= 0:
+                            transport.disponible = False
+
+                        transport.save()
+                    else:
+                        logger.warning(f"❌ Pas assez de ressources pour le transport {transport.id}")
+                        return HttpResponse("❌ Désolé, il n’y a plus assez de places ou de bagages disponibles pour ce voyage.")
+
+                else:
+                    logger.warning(f"⚠️ Aucun transport associé au voyage {voyage.id}")
+                    return HttpResponse("❌ Désolé, il n’y a plus de transport disponible à cette date.")
+
+
+                # Création message tchat
                 chauffeur = voyage.transporteurs
                 if chauffeur:
-                    chat_exists = MessageClientChauffeur.objects.filter(
-                        voyageur=voyageur,
-                        transporteur=chauffeur
-                    ).exists()
-
-                    if not chat_exists:
+                    if not MessageClientChauffeur.objects.filter(voyageur=voyageur, transporteur=chauffeur).exists():
                         MessageClientChauffeur.objects.create(
                             voyageur=voyageur,
                             transporteur=chauffeur,
@@ -548,9 +647,9 @@ def generate_pdf(request):
                             expediteur="voyageur"
                         )
             except Voyages.DoesNotExist:
-                print(f"Voyage ID {vid} non trouvé")
+                logger.warning(f"Voyage ID {vid} non trouvé")
 
-        # Contexte (inchangé)
+    # Contexte PDF
     context = {
         "titre": "Preuve de la reservation de voyage",
         "date": now().strftime("%Y-%m-%d"),
@@ -575,12 +674,11 @@ def generate_pdf(request):
         "prix_total": int(request.session.get("prix_unitaire", "0") or 0) + int(request.session.get("prix_retour", "0") or 0),
         "mot_de_passe_temp": request.session.get("mot_de_passe_temp", "Non généré"),
         "remarques": "Le voyage a été réservé avec succès. Merci de votre confiance."
-        
     }
+
     # Génération du PDF
     template = get_template("html/recap_pdf.html")
     html = template.render(context)
-
     filename = f"ticket_{now().strftime('%Y%m%d%H%M%S')}.pdf"
     filepath = os.path.join(settings.MEDIA_ROOT, "tickets", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -591,20 +689,18 @@ def generate_pdf(request):
     if pisa_status.err:
         return HttpResponse("Erreur lors de la génération du PDF")
 
-    # Sauvegarde du PDF dans le voyage aller uniquement
-    # ✅ Enregistrer le PDF dans le modèle Voyageurs
+    # Sauvegarde du PDF
     try:
         with open(filepath, "rb") as f:
             voyageur.ticket_pdf.save(filename, File(f), save=True)
     except Exception as e:
         print(f"Erreur lors de l'enregistrement du PDF pour le voyageur : {e}")
 
-    # Téléchargement du fichier
     with open(filepath, "rb") as f:
         response = HttpResponse(f.read(), content_type="application/pdf")
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
-    
+
 
 @staff_member_required
 def import_excel_view(request):
@@ -614,22 +710,24 @@ def import_excel_view(request):
             excel_file = request.FILES["excel_file"]
             path = os.path.join("transport", excel_file.name)
             
-            # Enregistrer le fichier dans transport/
+            # Enregistre le fichier dans transport/
             with open(path, "wb+") as dest:
                 for chunk in excel_file.chunks():
                     dest.write(chunk)
 
-            # Exécuter FillData
-            FillData(path).charge()
-
+            # Exécuter FillData avec l'utilisateur courant
+            FillData(path, user=request.user).charge()
             messages.success(request, "✅ Importation réussie")
             return redirect("/admin/")
     else:
         form = ExcelImportForm()
     
-    return render(request, "admin/global_excel_import.html", {"form": form})
+    historiques = HistoriqueImport.objects.order_by('-date_import')[:10]
 
-
+    return render(request, "admin/global_excel_import.html", {
+        "form": form,
+        "historiques": historiques
+    })
 
 # la vue change de mot de passe est une vue qui concerne que le voyageur
 # ==========================
@@ -1124,12 +1222,13 @@ def homepage3(request):
     """
     return render(request, 'html/homepage-3.html')
 
-def indisponible(request):
-
+def custom_404_view(request, exception):
     """
         cette fonction permet de erreur 404
     """
-    return render(request, 'html/404.html')
+    return render(request, "html/404.html", status=404)
+
+
 
 def question(request):
 
@@ -1203,5 +1302,21 @@ def blog_single(request):
 def privacy(request):
 
     return render(request, 'html/privacy-policy.html')
+
+   
+@staff_member_required
+def vider_table_view(request):
+    if request.method == "POST":
+        form = ViderTableForm(request.POST)
+        if form.is_valid():
+            model_label = form.cleaned_data["modele"]
+            model = apps.get_model(model_label)
+            count = model.objects.count()
+            model.objects.all().delete()
+            messages.success(request, f"{count} enregistrements supprimés dans '{model._meta.verbose_name_plural}'.")
+            return redirect("vider-table")
+    else:
+        form = ViderTableForm()
+    return render(request, "admin/vider_table.html", {"form": form})
 
 

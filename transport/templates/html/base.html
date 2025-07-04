@@ -56,7 +56,7 @@
 
     <!-- CUSTOM CSS -->
     <link href="{% static 'css/style.css' %}?v={{ timestamp }}" rel="stylesheet" />
-    <link href="{% static 'css/principal.css' %}?v={{ timestamp }}" rel="stylesheet" />
+    <link href="{% static 'css/principal.css' %}?v=3" rel="stylesheet" />
     <link href="{% static 'css/second_page.css' %}?v={{ timestamp }}" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/responsive_choix_voyage.css' %}">
 
@@ -66,13 +66,32 @@
       href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css"
       rel="stylesheet"
     />
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const btnDropdown = document.querySelector(".dropbtn");
+        const menu = document.getElementById("passenger-menu");
+      
+        // Clic sur le bouton pour afficher/masquer le menu
+        btnDropdown.addEventListener("click", function (e) {
+          e.stopPropagation(); // évite la fermeture immédiate
+          menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        });
+      
+        // Clic en dehors pour fermer le menu
+        document.addEventListener("click", function (e) {
+          if (!menu.contains(e.target) && !btnDropdown.contains(e.target)) {
+            menu.style.display = "none";
+          }
+        });
+      });
+      </script>
   </head>
 
   <body class="body-wrapper" data-spy="scroll" data-target=".privacy-nav">
     <nav class="navbar main-nav navbar-expand-lg px-2 px-sm-0 py-2 py-lg-0">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}"
-          ><img src="{% static 'images/logo.png' %}" alt="logo"
+          ><img class="log_enobat" src="{% static 'images/enobat_logo_2.png' %}" alt="logo"
         /></a>
         <button
           class="navbar-toggler"
@@ -92,88 +111,66 @@
                 class="nav-link dropdown-toggle"
                 href="#"
                 data-toggle="dropdown"
-                >Home
+                style="color: green;">Home
                 <span><i class="ti-angle-down"></i></span>
               </a>
               <!-- Dropdown list -->
               <ul class="dropdown-menu">
                 <li>
                   <a class="dropdown-item active" href="{% url 'home' %}"
-                    >Acceuil</a
+                  style="color: green;">Acceuil</a
                   >
                 </li>
                 <li>
                   <a class="dropdown-item" href="{% url 'user_login' %}"
-                    >user login</a
+                  style="color: green;">user login</a
                   >
                 </li>
                 <li>
                   <a class="dropdown-item active3" href="{% url 'login_chauffeur' %}"
-                    >chauffeur login</a
+                  style="color: green;">chauffeur login</a
                   >
                 </li>
              
               </ul>
             </li>
-            <li class="nav-item dropdown @@pages">
+            <li class="nav-item dropdown @@pages" style="color: green;">
               <a
                 class="nav-link dropdown-toggle"
                 href="#"
                 data-toggle="dropdown"
-                >Pages
+                style="color: green;">Pages
                 <span><i class="ti-angle-down"></i></span>
               </a>
               <!-- Dropdown list -->
               <ul class="dropdown-menu">
-                <li>
+                <li style="color: green;">
                   <a class="dropdown-item @@team" href="{% url 'team' %}"
-                    >Team</a
+                  style="color: green;">Team</a
                   >
                 </li>
-                <li>
+                <li style="color: green;">
                   <a class="dropdown-item @@career" href="{% url 'career' %}"
-                    >Career</a
+                  style="color: green;">Sponsor</a
                   >
                 </li>
-                <li>
-                  <a class="dropdown-item @@blog" href="{% url 'blog' %}"
-                    >Blog</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item @@blogSingle"
-                    href="{% url 'blog_single' %}"
-                    >Blog Single</a
-                  >
-                </li>
-                <li>
+                <li style="color: green;">
                   <a class="dropdown-item @@privacy" href="{% url 'privacy' %}"
-                    >Privacy</a
+                  style="color: green;">Privacy</a
                   >
                 </li>
-                <li>
+                <li style="color: green;">
                   <a class="dropdown-item @@faq" href="{% url 'question' %}"
-                    >FAQ</a
-                  >
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'indisponible' %}"
-                    >404</a
-                  >
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'comming_soon' %}"
-                    >Coming Soon</a
+                  style="color: green;" >FAQ</a
                   >
                 </li>
               </ul>
             </li>
-            <li class="nav-item @@about">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
+            <li class="nav-item @@about" style="color: green;">
+              <a class="nav-link" href="{% url 'about' %}" style="color: green;">About</a>
             </li>
-            <li class="nav-item @@contact">
-              <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+            <li class="nav-item @@contact" style="color: green;">
+              <a class="nav-link" href="{% url 'contact' %}" style="color: green;">Contact</a>
             </li>
           </ul>
         </div>

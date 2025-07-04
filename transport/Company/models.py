@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 from django.conf import settings
@@ -113,22 +114,6 @@ class Asso_trans_voyageur(models.Model):
     transporteurs = models.ForeignKey(Transporteurs, on_delete=models.CASCADE)
 
 # ========================
-# 🚌 Voyages
-# ========================
-
-class Voyages(models.Model):
-    date_depart = models.DateTimeField()
-    date_arrivee = models.DateTimeField()
-    ville_depart = models.CharField(max_length=50)
-    ville_arrivee = models.CharField(max_length=50)
-    prix_unitaire = models.FloatField()
-    transporteurs = models.ForeignKey(Transporteurs, on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = "Voyage"
-        verbose_name_plural = "Voyages"
-
-# ========================
 # 🏢 Compagnie
 # ========================
 
@@ -144,6 +129,7 @@ class Compagnie(models.Model):
     def __str__(self):
         return self.name
 
+
 # ========================
 # 🚐 Transports
 # ========================
@@ -152,12 +138,45 @@ class Transports(models.Model):
     marque = models.CharField(max_length=50)
     matricule = models.CharField(max_length=50, default="")
     nombre_de_place = models.IntegerField()
-    voyages = models.ForeignKey(Voyages, on_delete=models.CASCADE)
     compagnie = models.ForeignKey(Compagnie, on_delete=models.CASCADE)
+    transporteur = models.ForeignKey(Transporteurs, on_delete=models.CASCADE, null=True, blank=True)
+
+    # 👉 Nouveau
+    places_disponibles = models.PositiveIntegerField(default=0)
+    bagages_disponibles = models.PositiveIntegerField(default=0)
+    disponible = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Transport"
         verbose_name_plural = "Transports"
+
+    def save(self, *args, **kwargs):
+        if self.places_disponibles > self.nombre_de_place:
+            self.places_disponibles = self.nombre_de_place
+        super().save(*args, **kwargs)
+
+
+# ========================
+# 🚌 Voyages
+# ========================
+
+class Voyages(models.Model):
+    date_depart = models.DateTimeField()
+    date_arrivee = models.DateTimeField()
+    ville_depart = models.CharField(max_length=50)
+    ville_arrivee = models.CharField(max_length=50)
+    prix_unitaire = models.FloatField()
+    transporteurs = models.ForeignKey(Transporteurs, on_delete=models.CASCADE)
+    transport = models.ForeignKey(Transports, on_delete=models.CASCADE, null=True, blank=True)
+
+
+
+    class Meta:
+        verbose_name = "Voyage"
+        verbose_name_plural = "Voyages"
+
+
+
 # ========================
 # 🚐 Verification model
 # ========================
@@ -179,3 +198,18 @@ class Reservation(models.Model):
 
     def prix(self):
         return self.voyage.prix_unitaire
+
+
+class HistoriqueImport(models.Model):
+    utilisateur = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
+    fichier = models.CharField(max_length=255)
+    date_import = models.DateTimeField(auto_now_add=True)
+    feuilles_importees = models.TextField()
+    dimensions = models.TextField()
+
+    class Meta:
+        verbose_name = "Historique d'import"
+        verbose_name_plural = "Historiques d'import"
+
+    def __str__(self):
+        return f"{self.fichier} importé par {self.utilisateur} le {self.date_import.strftime('%d/%m/%Y %H:%M')}"

@@ -245,6 +245,7 @@ align-items: anchor-center;
   
 }
 
+/*
 .dropdown-content {
   display: none;
   position: absolute;
@@ -253,13 +254,15 @@ align-items: anchor-center;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
-
+  */
+/*
 .dropdown-content div {
   color: black;
   padding: 12px 6px;
   text-decoration: none;
-  /*display: block;*/
+  
 }
+*/
 
 .dropdown-content div:hover {background-color: #f1f1f1}
 
@@ -273,21 +276,7 @@ align-items: anchor-center;
 .retour-voyage {
   display: none;
 }
-/*
-.container-section-1 {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-  width: 100%;
-  height: 1227px;
-  background-image: url('../images/theme2.png');
-  background-size: cover;
-  
-}
-  */
+
 
 
 
@@ -412,7 +401,127 @@ align-items: anchor-center;
 .result-container {
   display: none;
 }
+.dropdown-choose-opt {
+  position: relative;
+  display: inline-block;
+}
 
+
+.dropdown-choose-opt:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-choose-opt img.drop-down {
+  cursor: pointer;
+  width: 20px;
+  margin-left: 8px;
+}
+/* ajout ici */
+
+#passenger-menu {
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 280px;
+}
+
+#passenger-menu div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.add-info-1 img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.add-info-1 input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  font-weight: bold;
+  background: transparent;
+}
+
+/* Boîte entière */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10;
+  min-width: 280px;
+  margin-top: 10px;
+  right: 0;
+}
+
+/* Chaque section (adultes, enfants, bagages) */
+.dropdown-content > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Groupe de contrôle + input + - */
+.add-info-1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Boutons + / - */
+.add-info-1 img {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  object-fit: contain;
+  cursor: pointer;
+  background: #f0f0f0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  transition: background 0.2s;
+}
+
+.add-info-1 img:hover {
+  background: #d1ecf1;
+}
+
+/* Input numérique */
+.adl-1 {
+  width: 40px;
+  text-align: center;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 14px;
+}
+
+
+.log_enobat {
+  height: 70px;
+  width: auto;
+  max-height: 80px;
+  object-fit: contain;
+  padding: 4px 0;
+  vertical-align: middle;
+}
+
+.navbar-brand img:hover {
+  transform: scale(1.05);  /* petit effet zoom au survol */
+}
+/* responsive styles */
 
 @media screen and (max-width: 768px) {
   .hero-section {
@@ -431,5 +540,11 @@ align-items: anchor-center;
 
   .continue {
       font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-brand img {
+      height: 45px;
   }
 }

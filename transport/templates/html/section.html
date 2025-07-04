@@ -36,6 +36,7 @@
         name="destination"
         placeholder="Ville arrivée"
       />
+      <!--
       <div class="dropdown-choose-opt" style="height: 100%;">
       <span class="dropbtn icon">
         <div id="btn-passager">1 adulte</div>
@@ -93,6 +94,49 @@
       </span>
 
     </div>
+  -->
+
+    <!--================== modifi dropdown ===============-->
+
+    <div class="dropdown-choose-opt">
+      <div class="dropbtn icon">
+        <div id="btn-passager">1 adulte</div>
+        <img class="drop-down" src="static/images/down-arrow.png" alt="flèche" />
+      </div>
+    
+      <div class="dropdown-content" id="passenger-menu">
+        <div class="adulte">
+          <div>Adulte(s)</div>
+          <span class="add-info-1">
+            <img class="adl-btn-1 btn-more-adl" src="static/images/plus.png" alt="+" />
+            <input class="adl-1" id="nbr-adl" name="nbr_adl" type="text" value="1" readonly />
+            <img class="adl-btn-2 btn-manus-adl" src="static/images/moins.png" alt="−" />
+          </span>
+        </div>
+    
+        <div class="enfant">
+          <div>Enfant(s)</div>
+          <span class="add-info-1">
+            <img class="adl-btn-1 btn-more-enf" src="static/images/plus.png" alt="+" />
+            <input class="adl-1" id="nbr-enf" name="nbr_enf" type="text" value="0" readonly />
+            <img class="adl-btn-2 btn-manus-enf" src="static/images/moins.png" alt="−" />
+          </span>
+        </div>
+    
+        <div class="bagage">
+          <div>Bagage(s)</div>
+          <span class="add-info-1">
+            <img class="adl-btn-1 btn-more-bg" src="static/images/plus.png" alt="+" />
+            <input class="adl-1" id="nbr-bga" name="nbr_bga" type="text" value="0" readonly />
+            <img class="adl-btn-2 btn-manus-bg" src="static/images/moins.png" alt="−" />
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+    <!--================== Fin ajout ====================-->
+
 
       <input
         class="im-1"
@@ -109,18 +153,7 @@
       />
       <button class="btn-search" type="submit">Chercher</button>
     </div>
-    <!--==================  box depart ====================
-    <center>
-      <div id="box-depart-3">
-        {% for dep in list_ville_depart %} {{ dep }} <br />
-        {% endfor %}
-      </div>
-      <div id="box-arrivee">
-        {% for arv in list_ville_arrivee %} {{ arv }} <br />
-        {% endfor %}
-      </div>
-    </center>
-    -->
+
   </form>
 </section>
 <!--====  End of Hero Section  ====-->
@@ -245,160 +278,4 @@
   </div>
 </section>
 <!--====  End of Testimonial  ====-->
-
-{% endblock %} {% block scripts %}
-<script>
-  /* construction d'une fonction qui permet de retourner un array unique */
-  function uniqueArr(Arr) {
-    let outputArray = [];
-
-    // Count variable is used to add the
-    // new unique value only once in the
-    // outputArray.
-    let count = 0;
-
-    // Start variable is used to set true
-    // if a repeated duplicate value is
-    // encontered in the output array.
-    let start = false;
-
-    for (let j = 0; j < Arr.length; j++) {
-      for (let k = 0; k < outputArray.length; k++) {
-        if (Arr[j] == outputArray[k]) {
-          start = true;
-        }
-      }
-      count++;
-      if (count == 1 && start == false) {
-        outputArray.push(Arr[j]);
-      }
-      start = false;
-      count = 0;
-    }
-
-    return outputArray;
-  }
-/*
-  const box_arrivee = document.getElementById("box-arrivee");
-  const box_depart = document.getElementById("box-depart-3");
-
-  const depart = "{{list_ville_depart}}";
-  const arrivee = "{{list_ville_arrivee}}";
-
-  const rdepart = JSON.parse(JSON.stringify(depart).replace(/&#x27;/g, "'"));
-  const rarrivee = JSON.parse(JSON.stringify(arrivee).replace(/&#x27;/g, "'"));
-
-  const input_d = document.getElementById("box-depart-2");
-  const input_a = document.getElementById("box-arrivee-2");
-  console.log(input_d);
-  console.log(input_a);
-
-  let filteredDep = [];
-  let filteredArr = [];
-
-  /* change string to array for use .filter */
-  /*
-  let arr = rdepart.split("'");
-  let arr_depart = arr.filter((e) => e !== "[" && e !== "]" && e !== ", ");
-
-  let arr2 = rarrivee.split("'");
-  let arr_arrivee = arr2.filter((e) => e !== "[" && e !== "]" && e !== ", ");
-  /* fin de la conversion en array */
-  /*
-  input_a.addEventListener("mouseover", () => {
-    box_arrivee.style.display = "block";
-    /*=================== ici ==================================*/
-/*
-    input_a.addEventListener("keyup", (e) => {
-      box_arrivee.innerHTML = "";
-      filteredArr = arr_arrivee.filter((element) =>
-        element.toLowerCase().includes(e.target.value)
-      );
-      console.log(filteredArr);
-      filteredArr_uniq = uniqueArr(filteredArr);
-      console.log(filteredArr_uniq);
-      if (filteredArr_uniq.length == 1) {
-        box_arrivee.innerHTML +=
-          "<b><a>" + filteredArr_uniq[0] + "</a></b></br>";
-      } else if (filteredArr_uniq.length > 1) {
-        console.log("je suis bien ici");
-
-        for (let i = 0; i < filteredArr_uniq.length; i++) {
-          console.log(filteredArr_uniq[i]);
-          box_arrivee.innerHTML +=
-            "<b><a>" + filteredArr_uniq[i] + "</a></b></br>";
-        }
-      } else {
-        box_arrivee.innerHTML = "<b>No results found...</b>";
-      }
-    });
-
-    /* ================= fin ===============================*/
-  /*});
-  
-  input_a.addEventListener("keyup", (e) => {
-    box_arrivee.innerHTML = "";
-    filteredArr = arr_arrivee.filter((element) =>
-      element.toLowerCase().includes(e.target.value)
-    );
-    console.log(filteredArr);
-    filteredArr_uniq = uniqueArr(filteredArr);
-    console.log(filteredArr_uniq);
-    if (filteredArr_uniq.length == 1) {
-      box_arrivee.innerHTML += "<b><a>" + filteredArr_uniq[0] + "</a></b></br>";
-    } else if (filteredArr_uniq.length > 1) {
-      console.log("je suis bien ici");
-
-      for (let i = 0; i < filteredArr_uniq.length; i++) {
-        console.log(filteredArr_uniq[i]);
-        box_arrivee.innerHTML +=
-          "<b><a>" + filteredArr_uniq[i] + "</a></b></br>";
-      }
-    } else {
-      box_arrivee.innerHTML = "<b>No results found...</b>";
-    }
-  });
-*/
-/*
-  input_d.addEventListener("mouseover", () => {
-    box_depart.style.display = "block";
-    input_d.addEventListener("keyup", (e) => {
-      box_depart.innerHTML = "";
-      filteredDep = arr_depart.filter((element) =>
-        element.toLowerCase().includes(e.target.value)
-      );
-      console.log(filteredDep);
-      filteredDep_uniq = uniqueArr(filteredDep);
-      if (filteredDep_uniq.length == 1) {
-        box_depart.innerHTML +=
-          "<b><a>" + filteredDep_uniq[0] + "</a></b></br>";
-      } else if (filteredDep_uniq.length > 1) {
-        for (let i = 0; i < filteredDep_uniq.length; i++) {
-          console.log(filteredDep_uniq[i]);
-          box_depart.innerHTML +=
-            "<b><a>" + filteredDep_uniq[i] + "</a></b></br>";
-        }
-      } else {
-        box_depart.innerHTML = "<b>No results found...</b>";
-      }
-    });
-  });
-
-  const linkDep = document.getElementById("box-depart-3");
-  arr0 = linkDep.childNodes;
-  for (let i = 0; i < arr0.length; i++) {
-    arr0[i].addEventListener("click", (e) => {
-      input_d.innerHTML = arr0[i].innerText;
-    });
-  }
-
-  const linkArr = document.getElementById("box-arrivee");
-  arr1 = linkArr.childNodes;
-  for (let i = 0; i < arr1.length; i++) {
-    arr1[i].addEventListener("click", (e) => {
-      input_a.innerHTML = arr1[i].innerText;
-    });
-  }
-  */
-</script>
-{% endblock scripts%}
+{% endblock section %}

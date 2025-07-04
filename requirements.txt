@@ -6,3 +6,5 @@ sqlparse==0.4.4
 typing-extensions==4.7.1
 pandas 
 openpyxl
+paypalrestsdk
+dotenv

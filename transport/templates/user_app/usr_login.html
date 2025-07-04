@@ -31,6 +31,15 @@
                 <a href="{% url 'register_user' %}" style="margin-right: 20px; color: #4CAF50; font-weight: bold;">Créer un compte</a>
                 <a href="{% url 'password_reset_voyageur' %}" style="color: #4CAF50; font-weight: bold;">Mot de passe oublié ?</a>
             </div>
+            <div style="margin-top: 20px;">
+                <a href="{% url 'home' %}" style="color: #4CAF50; font-weight: bold;">← Retour à l'accueil</a>
+              </div>
+                  <p style="margin-top: 20px; color: #4CAF50;">Vous n'êtes pas voyageur ? 
+                    <br>
+                    <a href="{% url 'login_chauffeur' %}" style="color: #4CAF50; font-weight: bold;">Connectez-vous en tant que chauffeur
+                    </a></p>
+                </div>
+              </div>
         </div>
        
     </div>

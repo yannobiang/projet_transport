@@ -12,10 +12,20 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+PAYPAL_SECRET_KEY = os.getenv("PAYPAL_SECRET_KEY")
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")  # 'sandbox' or 'live'
+print("PAYPAL_CLIENT_ID:", PAYPAL_CLIENT_ID)
+print("PAYPAL_SECRET_KEY:", PAYPAL_SECRET_KEY)
+print("PAYPAL_MODE:", PAYPAL_MODE)
 AUTH_USER_MODEL = 'Company.CustomUser'  # Remplace "votreapp" par le nom exact de ton application
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

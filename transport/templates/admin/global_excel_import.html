@@ -6,4 +6,58 @@
     {{ form.as_p }}
     <button type="submit" class="default">Importer les données</button>
   </form>
+  <h2>📜 Historique des imports</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Utilisateur</th>
+            <th>Fichier</th>
+            <th>Date</th>
+            <th>Feuilles</th>
+            <th>Dimensions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in historiques %}
+        <tr>
+            <td>{{ log.utilisateur }}</td>
+            <td>{{ log.fichier }}</td>
+            <td>{{ log.date_import|date:"d/m/Y H:i" }}</td>
+            <td>{{ log.feuilles_importees }}</td>
+            <td>{{ log.dimensions }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<style>
+  table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+  }
+
+  th, td {
+      border: 1px solid #999;
+      padding: 6px 12px;
+      text-align: left;
+  }
+
+  th {
+      background-color: #2d3748;
+      color: white;
+  }
+
+  tr:nth-child(even) {
+      background-color: #1a202c;
+  }
+
+  tr:hover {
+      background-color: #4a5568;
+  }
+
+  h2, h3 {
+      margin-top: 30px;
+  }
+</style>
 {% endblock %}

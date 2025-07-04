@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Connexion Client</title>
-  <link rel="stylesheet" href="{% static 'css/style_user.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style_chauffeur.css' %}">
 </head>
 <body>
   <div class="login-wrapper">
@@ -18,9 +18,15 @@
         <input type="hidden" name="role" value="chauffeur">
       </form>
       <div style="margin-top: 15px;">
-        <a href="{% url 'register_user' %}" style="margin-right: 20px; color: #4CAF50; font-weight: bold;">Créer un compte</a>
-        <a href="{% url 'password_reset_chauffeur' %}" style="color: #4CAF50; font-weight: bold;">Mot de passe oublié ?</a>
+        <a href="{% url 'register_user' %}" style="margin-right: 20px; color: #e0a800; font-weight: bold;">Créer un compte</a>
+        <a href="{% url 'password_reset_chauffeur' %}" style="color: #e0a800; font-weight: bold;">Mot de passe oublié ?</a>
     </div>
+
+  <!-- ➕ Lien vers la page d'accueil -->
+  <div style="margin-top: 20px;">
+    <a href="{% url 'home' %}" style="color: #007BFF; font-weight: bold;">← Retour à l'accueil</a>
+  </div>
+      <p style="margin-top: 20px; color: #e0a800;">Vous n'êtes pas chauffeur ? <a href="{% url 'user_login' %}" style="color: #007BFF; font-weight: bold;">Connectez-vous en tant que client</a></p>
     </div>
   </div>
 </body>

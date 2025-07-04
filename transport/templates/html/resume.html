@@ -8,13 +8,14 @@
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
+      background-color: #f9f9f9;
     }
     .resume-container {
       max-width: 600px;
       margin: auto;
       padding: 20px;
       border-radius: 8px;
-      background-color: #f9f9f9;
+      background-color: #fff;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     h2 {
@@ -39,6 +40,10 @@
     .submit-btn:hover {
       background-color: #45a049;
     }
+    #paypal-button-container {
+      max-width: 600px;
+      margin: 20px auto 0 auto;
+    }
   </style>
 </head>
 <body>
@@ -46,102 +51,93 @@
     <h2>Résumé de votre réservation</h2>
     <p>Veuillez vérifier les informations ci-dessous avant de confirmer votre réservation.</p>
 
-    <form id="reservation-form" action="{% url 'pdf_recap' %}" method="post">
-      {% csrf_token %}
-      <div class="resume-container">
-        <h3 style="text-align: center;">Informations du voyage aller</h3>
-        <div class="info"><span class="label">Date de départ :</span> {{ date_depart }}</div>
-        <div class="info"><span class="label">Date d'arrivée :</span> {{ date_arrivee }}</div>
-        <div class="info"><span class="label">Ville de départ :</span> {{ ville_depart }}</div>
-        <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_arrivee }}</div>
-        </div>
-        {% if date_retour_depart %}
-        <div class="resume-container">
-        <h3 style=" text-align: center;"> Informations du voyage retour</h3>
-          <div class="info"><span class="label">Date de retour :</span> {{ date_retour_arrivee }}</div>
-          <div class="info"><span class="label">Date de depart :</span> {{ date_retour_depart }}</div>
-          <div class="info"><span class="label">Ville de départ :</span> {{ ville_arrivee_retour }}</div>
-          <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_depart_retour }}</div>
-        </div>
-        {% endif %}
-    
-        <div class="info"><span class="label">Nombre d'adultes :</span> {{ adultes }}</div>
-        <div class="info"><span class="label">Nombre d'enfants :</span> {{ enfants }}</div>
-        <div class="info"><span class="label">Nombre de bagages :</span> {{ bagages }}</div>
-      </div>
-    
-      <div style="text-align: center; margin-top: 20px;max-width: 645px; 
-      justify-content: center;align-items: center;margin-left: 29%;
-      margin-right: 10%;">
-        <button id="confirm-btn" class="submit-btn" type="submit">Confirmer la réservation</button>
-      </div>
-    </form>
-    <div id="success-message" style="display: none; text-align: center; margin-top: 20px;">
-      <div style="
-        padding: 12px 20px;
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-        border-radius: 5px;
-        font-size: 16px;
-        margin-bottom: 15px;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-      ">
-        ✅ Le ticket a été téléchargé avec succès.
-      </div>
-      <a href="{% url 'home' %}" style="
-        display: inline-block;
-        padding: 12px 25px;
-        background-color: #4CAF50;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 16px;
-      ">
-        Retour à l'accueil
-      </a>
+    <div class="resume-container">
+      <h3 style="text-align: center;">Informations du voyage aller</h3>
+      <div class="info"><span class="label">Date de départ :</span> {{ date_depart }}</div>
+      <div class="info"><span class="label">Date d'arrivée :</span> {{ date_arrivee }}</div>
+      <div class="info"><span class="label">Ville de départ :</span> {{ ville_depart }}</div>
+      <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_arrivee }}</div>
     </div>
+    {% if date_retour_depart %}
+    <div class="resume-container">
+      <h3 style=" text-align: center;"> Informations du voyage retour</h3>
+      <div class="info"><span class="label">Date de retour :</span> {{ date_retour_arrivee }}</div>
+      <div class="info"><span class="label">Date de depart :</span> {{ date_retour_depart }}</div>
+      <div class="info"><span class="label">Ville de départ :</span> {{ ville_arrivee_retour }}</div>
+      <div class="info"><span class="label">Ville d'arrivée :</span> {{ ville_depart_retour }}</div>
+    </div>
+    {% endif %}
+
+    <div class="info"><span class="label">Nombre d'adultes :</span> {{ adultes }}</div>
+    <div class="info"><span class="label">Nombre d'enfants :</span> {{ enfants }}</div>
+    <div class="info"><span class="label">Nombre de bagages :</span> {{ bagages }}</div>
+
+    <div id="paypal-button-container"></div>
   </div>
+
+  <div id="success-message" style="display: none; text-align: center; margin-top: 20px;">
+    <div style="
+      padding: 12px 20px;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    ">
+      ✅ Le ticket a été téléchargé avec succès.
+    </div>
+    <a href="{% url 'home' %}" style="
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+    ">
+      Retour à l'accueil
+    </a>
+  </div>
+  <script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency=EUR"></script>
+
   <script>
-    document.getElementById("reservation-form").addEventListener("submit", function(e) {
-        e.preventDefault();
-    
-        const form = e.target;
-        const formData = new FormData(form);
-        const bouton = document.getElementById("confirm-btn");
-        const message = document.getElementById("success-message");
-    
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Erreur lors du téléchargement.");
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "ticket_reservation.pdf";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-    
-            // ✅ Affiche la boîte verte et le bouton retour
-            message.style.display = "block";
-            bouton.style.display = "none";
-        })
-        .catch(error => {
-            alert("Une erreur est survenue : " + error.message);
+  
+  paypal.Buttons({
+    fundingSource: paypal.FUNDING.PAYPAL,
+    style: {
+      layout: 'vertical',
+      color:  'gold',
+      shape:  'rect',
+      label:  'paypal'
+    },
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: '{{ prix_total }}',
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        fetch('/paiement/complete/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(details)
+        }).then(() => {
+          window.location.href = '/pdf-recap/';
         });
-    });
-    </script>
- 
+      });
+    }
+  }).render('#paypal-button-container');
+</script>
 </body>
 </html>

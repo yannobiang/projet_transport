@@ -7,4 +7,14 @@
     <h2>Import Excel Global</h2>
     <a class="button" href="{% url 'import_excel' %}">📥 Importer les données Excel</a>
   </div>
+  <div class="custom-admin-section" style="margin-top: 40px;">
+    <h2 style="color: red;"><i class="fas fa-database"></i> Attention outils personnalisés cette action est irréversible</h2>
+    <ul style="list-style: none; padding-left: 0;">
+      <li>
+        <a href="{% url 'vider-table' %}" style="font-weight: bold; color: #3498db;">
+          🧹 Vider une table
+        </a>
+      </li>
+    </ul>
+  </div>
 {% endblock %}

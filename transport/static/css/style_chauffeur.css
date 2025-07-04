@@ -1,11 +1,113 @@
+/* style_chauffeur.css */
 
 body {
-    font-family: Arial, sans-serif;
-    background: #e0f7fa;
-    margin: 40px;
-}
-input, button, textarea {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f0f8ff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+form {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+.login-wrapper {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-card {
+    background: linear-gradient(135deg, #ffffff, #e6f0ff);
+    border: 3px solid #007BFF;
+    border-radius: 20px;
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+  
+  .login-card h2 {
+    color: #FFC107;
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .login-card input[type="email"],
+  .login-card input[type="password"] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px 15px;
     margin: 10px 0;
-    padding: 10px;
-    width: 300px;
-}
+    border: 2px solid #007BFF;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    background-color: #f5faff;
+    transition: border-color 0.2s;
+  }
+  
+  .login-card input[type="email"]:focus,
+  .login-card input[type="password"]:focus {
+    border-color: #0056b3;
+  }
+  
+  .login-card button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #FFC107;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-card button[type="submit"]:hover {
+    background-color: #e0a800;
+  }
+  
+  .login-card a {
+    color: #007BFF;
+    font-weight: 600;
+    text-decoration: none;
+    margin: 0 10px;
+    display: inline-block;
+  }
+  
+  .login-card a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsive media queries */
+  @media (max-width: 600px) {
+    .login-card {
+      padding: 30px 20px;
+    }
+  
+    .login-card h2 {
+      font-size: 20px;
+    }
+  
+    .login-card input[type="email"],
+    .login-card input[type="password"] {
+      font-size: 14px;
+    }
+  
+    .login-card button[type="submit"] {
+      font-size: 14px;
+    }
+  }
+  
