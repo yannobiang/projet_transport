@@ -1,5 +1,6 @@
 from django import forms
 from django.apps import apps
+from django.contrib.auth import get_user_model
 
 class ViderTableForm(forms.Form):
     modele = forms.ChoiceField(label="Choisir une table", choices=[])
@@ -11,6 +12,13 @@ class ViderTableForm(forms.Form):
             (model._meta.label, model._meta.verbose_name_plural.title())
             for model in apps.get_app_config('Company').get_models()
         ]
+        CustomUser = get_user_model()
+        utilisateurs_normaux = CustomUser.objects.filter(is_staff=False, is_superuser=False)
+
+        if utilisateurs_normaux.exists():
+            modele_choices.append(
+                (CustomUser._meta.label, "Utilisateurs (Voyageurs et Transporteurs)")
+            )
         self.fields['modele'].choices = modele_choices
 
 class ExcelImportForm(forms.Form):

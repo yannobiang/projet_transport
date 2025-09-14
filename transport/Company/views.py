@@ -18,7 +18,7 @@ import logging
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 logger = logging.getLogger(__name__)
-from .utils import convert, get_weekday, get_month, safe_format_iso
+from .utils import convert, get_weekday, get_month, safe_format_iso, payer, verifier_paiement
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from xhtml2pdf import pisa
@@ -43,6 +43,10 @@ from reportlab.pdfgen import canvas
 import io
 from io import BytesIO
 import paypalrestsdk
+from django.http import JsonResponse
+
+
+
 
 
 # Create your views here.
@@ -563,6 +567,22 @@ def payment_complete(request):
         print("✅ Paiement reçu avec succès")
         return JsonResponse({"status": "success"})
 
+
+
+
+@csrf_exempt
+def lancer_paiement(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        telephone = data.get('telephone')
+        montant = data.get('montant')
+        operateur = data.get('operateur')
+
+        resultat = payer(telephone, montant, operateur)
+        return JsonResponse(resultat)
+    else:
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
 def generate_pdf(request):
     # Création ou récupération du User
     if request.method != "GET":
@@ -976,7 +996,12 @@ def verify_code(request):
 
 def dashboard(request):
     user = request.user
-    voyageur = Voyageurs.objects.get(user=user)
+    try:
+        voyageur = Voyageurs.objects.get(user=user)
+    except Voyageurs.DoesNotExist as e:
+        print(f"❌ Voyageur non trouvé pour l'utilisateur {user.id}: {e}")
+        messages.error(request, "Vous devez être un voyageur pour accéder à ce tableau de bord.")
+        return redirect("user_login")
 
     # Toutes les réservations de ce voyageur
     reservations = Reservation.objects.filter(voyageur=voyageur).select_related('voyage', 'voyage__transporteurs')
@@ -1101,26 +1126,37 @@ def telecharger_passagers_pdf(request):
     return FileResponse(buffer, as_attachment=True, filename="liste_passagers.pdf")
 
 
-
 def register_user(request):
     if request.method == 'POST':
         role = request.POST.get('role')
         name = request.POST.get('nom')
         firstname = request.POST.get('prenom')
         email = request.POST.get('email')
+        password_temp = request.POST.get('password')
 
-        if not all([role, name, firstname, email]):
+        # Vérification des champs communs
+        if not all([role, name, firstname, email, password_temp]):
             messages.error(request, "Veuillez remplir tous les champs obligatoires.")
             return redirect('register_user')
 
-        # Création de l'utilisateur Django pour login futur
-        password_temp = request.POST.get('password')  #get_random_string(10)
+        # Vérifier unicité de l'email
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Un compte avec cet email existe déjà.")
+            return redirect('register_user')
+
+        # Sécurité minimale mot de passe
+        if len(password_temp) < 6:
+            messages.error(request, "Le mot de passe doit contenir au moins 6 caractères.")
+            return redirect('register_user')
+
+        # Création de l'utilisateur
         user = User.objects.create_user(email=email, password=password_temp)
         user.first_name = firstname
         user.last_name = name
         user.role = role
         user.save()
 
+        # Inscription d’un voyageur
         if role == 'voyageur':
             Voyageurs.objects.create(
                 user=user,
@@ -1129,7 +1165,9 @@ def register_user(request):
                 email=email
             )
             messages.success(request, "Voyageur enregistré avec succès.")
+            return redirect('user_login')
 
+        # Inscription d’un chauffeur
         elif role == 'chauffeur':
             date_de_naissance = request.POST.get('date_de_naissance')
             adresse = request.POST.get('adresse')
@@ -1141,24 +1179,31 @@ def register_user(request):
                 messages.error(request, "Tous les champs sont obligatoires pour le chauffeur.")
                 return redirect('register_user')
 
+            try:
+                date_obj = datetime.strptime(date_de_naissance, '%Y-%m-%d')
+            except ValueError:
+                messages.error(request, "Format de date de naissance invalide. Utilisez AAAA-MM-JJ.")
+                return redirect('register_user')
+
             Transporteurs.objects.create(
                 user=user,
                 name=name,
                 firstname=firstname,
                 email=email,
-                date_de_naissance=datetime.strptime(date_de_naissance, '%Y-%m-%d'),
+                date_de_naissance=date_obj,
                 adresse=adresse,
                 ville=ville,
                 permis=permis,
                 phone=phone
             )
             messages.success(request, "Chauffeur enregistré avec succès.")
+            return redirect('cha_login')
+
+        # Cas invalide
         else:
             messages.error(request, "Rôle invalide.")
             messages.error(request, "Email ou mot de passe incorrect.")
             return redirect('register_user')
-
-        return redirect('user_login')
 
     return render(request, 'user_app/register_user.html')
 
@@ -1174,7 +1219,7 @@ def password_reset_voyageur(request):
             user.password = make_password(new_password)
             user.save()
             messages.success(request, "Mot de passe mis à jour pour le voyageur.")
-            return redirect('login')  # ou autre nom d’URL
+            return redirect('user_login')  # ou autre nom d’URL
         except Voyageurs.DoesNotExist:
             messages.error(request, "Aucun compte voyageur trouvé pour cet email.")
     
@@ -1303,20 +1348,36 @@ def privacy(request):
 
     return render(request, 'html/privacy-policy.html')
 
-   
 @staff_member_required
 def vider_table_view(request):
     if request.method == "POST":
         form = ViderTableForm(request.POST)
         if form.is_valid():
             model_label = form.cleaned_data["modele"]
-            model = apps.get_model(model_label)
-            count = model.objects.count()
-            model.objects.all().delete()
-            messages.success(request, f"{count} enregistrements supprimés dans '{model._meta.verbose_name_plural}'.")
+            CustomUser = get_user_model()
+
+            if model_label == CustomUser._meta.label:
+                # 🔁 Étape 1 : Supprimer les dépendances liées à CustomUser
+                voyageurs_deleted = Voyageurs.objects.count()
+                transporteurs_deleted = Transporteurs.objects.count()
+                Voyageurs.objects.all().delete()
+                Transporteurs.objects.all().delete()
+
+                # 🔁 Étape 2 : Supprimer les utilisateurs non-admin
+                users_to_delete = CustomUser.objects.filter(is_staff=False, is_superuser=False)
+                count = users_to_delete.count()
+                users_to_delete.delete()
+
+                messages.success(request, f"✅ {count} utilisateurs supprimés. "
+                                          f"({voyageurs_deleted} voyageurs et {transporteurs_deleted} transporteurs supprimés avant).")
+            else:
+                model = apps.get_model(model_label)
+                count = model.objects.count()
+                model.objects.all().delete()
+                messages.success(request, f"✅ {count} enregistrements supprimés dans '{model._meta.verbose_name_plural}'.")
+
             return redirect("vider-table")
     else:
         form = ViderTableForm()
+
     return render(request, "admin/vider_table.html", {"form": form})
-
-

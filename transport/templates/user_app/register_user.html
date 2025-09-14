@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <title>Inscription</title>
     <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <script>
+        function toggleChauffeurFields() {
+            const role = document.getElementById("role").value;
+            const chauffeurFields = document.getElementById("chauffeur-fields");
+            chauffeurFields.style.display = role === "chauffeur" ? "block" : "none";
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleChauffeurFields();  // au cas où un rôle est pré-sélectionné
+            document.getElementById("role").addEventListener("change", toggleChauffeurFields);
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -15,20 +27,30 @@
             <input type="text" name="prenom" placeholder="Prénom" required>
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Mot de passe" required>
-            <select name="role" required>
+
+            <select name="role" id="role" required>
                 <option value="">Choisissez un rôle</option>
                 <option value="voyageur">Voyageur</option>
                 <option value="chauffeur">Chauffeur</option>
             </select>
+
+            <!-- Champs spécifiques aux chauffeurs -->
+            <div id="chauffeur-fields" style="display:none; margin-top: 15px;">
+                <input type="date" name="date_de_naissance" placeholder="Date de naissance">
+                <input type="text" name="adresse" placeholder="Adresse">
+                <input type="text" name="ville" placeholder="Ville">
+                <input type="text" name="permis" placeholder="Type de permis (ex : B)">
+                <input type="text" name="phone" placeholder="Téléphone">
+            </div>
+
             <button type="submit">S'inscrire</button>
         </form>
+
         {% if chauffeur %}
-        <a href="{% url 'password_reset_chauffeur' %}">Mot de passe oublié ?</a>
+            <a href="{% url 'password_reset_chauffeur' %}">Mot de passe oublié ?</a>
         {% else %}
-        
-        <a href="{% url 'password_reset_voyageur' %}">Mot de passe oublié ?</a>
+            <a href="{% url 'password_reset_voyageur' %}">Mot de passe oublié ?</a>
         {% endif %}
-        
     </div>
 </body>
 </html>

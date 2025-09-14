@@ -193,10 +193,38 @@ window.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+
+// nous recuperons les valeurs d'aller et de retour 
+document.addEventListener("DOMContentLoaded", function () {
+  // Gestion affichage date retour
+  const k = document.getElementById("aller");
+  const retour = document.querySelector(".date-retour");
+
+  if (k && retour) {
+    k.addEventListener("change", function () {
+      if (k.checked === true) {
+        console.log("aller checked");
+        retour.style.display = "block";
+      } else {
+        console.log("aller unchecked");
+        retour.style.display = "none";
+      }
+    });
+  }
+
+const Rcheck = document.getElementById("retour");
+  if (Rcheck && retour) {
+    Rcheck.addEventListener("click", () => {
+      if (Rcheck.checked === true) {
+        console.log("retour checked");
+        retour.style.display = "block";
+      } else {
+        retour.style.display = "none";
+      }
+    });
+  }
+});
+
 //});
 // Ferme le dropdown si on clique en dehors
-
-
-
-
 

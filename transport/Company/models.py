@@ -50,15 +50,26 @@ class CustomUser(AbstractUser):
 # ========================
 
 class Transporteurs(models.Model):
+    PERMIS_CHOICES = [
+        ("A", "Permis A"),
+        ("B", "Permis B"),
+        ("C", "Permis C"),
+        ("D", "Permis D"),
+        ("BE", "Permis BE"),
+        ("C1E", "Permis C1E"),
+    ]
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=50)
     firstname = models.CharField(max_length=50)
     date_de_naissance = models.DateField()
     adresse = models.TextField()
     ville = models.CharField(max_length=30)
-    permis = models.CharField(max_length=5, default="")
+    permis = models.CharField(max_length=5, choices=PERMIS_CHOICES, default="B")
     phone = models.CharField(max_length=60)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(default=timezone.now)
+
 
     class Meta:
         verbose_name = "Transporteur"
@@ -66,7 +77,7 @@ class Transporteurs(models.Model):
         ordering = ["name", "firstname"]
 
     def __str__(self):
-        return self.name
+        return f"{self.firstname} {self.name}"
 
 # ========================
 # 👤 Voyageur

@@ -1,5 +1,7 @@
 
 # -*- coding: utf-8 -*-
+import requests
+from transport.settings import API_BASE_URL, API_MARCHAND, API_KEY, API_SECRET
 from datetime import datetime, timedelta
 def convert(date):
     """
@@ -45,3 +47,51 @@ def safe_format_iso(date_str):
     except:
         pass
     return date_str  # retourne la valeur brute si invalider
+
+
+def get_token():
+    url = f"{API_BASE_URL}/DT81UNEAMJZTUOCF/renew-secret"
+    payload = {
+        'slug': API_MARCHAND,
+        'apikey': API_KEY,
+        'secretkey': API_SECRET
+    }
+    response = requests.post(url, data=payload)
+    if response.status_code == 200:
+        return response.json().get('token')
+    else:
+        print("Erreur de Token:", response.text)
+        return None
+    
+def payer(numero, montant, operateur='AIRTEL'):
+    token = get_token()
+    if not token:
+        return None
+
+    url = f"{API_BASE_URL}/74XYMWE4IMVPKHRE/rest"
+    headers = {'Authorization': f'Bearer {token}'}
+    data = {
+        'slug': API_MARCHAND,
+        'telephone': numero,
+        'montant': montant,
+        'operateur': operateur,  # 'AIRTEL' ou 'MOOV'
+        'callback_url': 'https://tonsite.com/callback/'
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+
+def verifier_paiement(transaction_id):
+    token = get_token()
+    if not token:
+        return None
+
+    url = f"{API_BASE_URL}/JNDNPXVZVY6QMHUQ/status"
+    headers = {'Authorization': f'Bearer {token}'}
+    data = {
+        'slug': API_MARCHAND,
+        'transaction_id': transaction_id
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()

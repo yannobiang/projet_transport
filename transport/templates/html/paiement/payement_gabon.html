@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement Mobile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .payment-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .payment-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .payment-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .payment-container input, .payment-container select, .payment-container button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .payment-container button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .payment-container button:hover {
+            background-color: #218838;
+        }
+        .response-message {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        @media screen and (max-width: 480px) {
+            .payment-container {
+                margin: 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="payment-container">
+    <h2>Paiement Mobile</h2>
+    <form id="paymentForm">
+        <label for="telephone">Numéro de téléphone</label>
+        <input type="text" id="telephone" name="telephone" placeholder="ex: 07000000" required>
+
+        <label for="montant">Montant (XAF)</label>
+        <input type="number" id="montant" name="montant" placeholder="ex: 5000" required>
+
+        <label for="operateur">Opérateur</label>
+        <select id="operateur" name="operateur" required>
+            <option value="AIRTEL">Airtel Money</option>
+            <option value="MOOV">Moov Money</option>
+        </select>
+
+        <button type="submit">Payer</button>
+    </form>
+
+    <div class="response-message" id="responseMessage"></div>
+</div>
+
+<script>
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const telephone = document.getElementById('telephone').value;
+        const montant = document.getElementById('montant').value;
+        const operateur = document.getElementById('operateur').value;
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch('/lancer-paiement/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                telephone: telephone,
+                montant: montant,
+                operateur: operateur
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('responseMessage').innerHTML = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+            document.getElementById('responseMessage').innerHTML = 'Erreur : ' + error;
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+</body>
+</html>

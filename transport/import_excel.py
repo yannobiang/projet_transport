@@ -2,12 +2,15 @@ import os
 import sys
 import django
 import pandas as pd
+from django.utils.crypto import get_random_string
+from datetime import datetime
+from tabulate import tabulate 
 
 # Configuration Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'transport.settings')
 # django.setup()
 
-from Company.models import Transporteurs, Voyageurs, Voyages, Compagnie, Transports, Asso_trans_voyageur
+from Company.models import Transporteurs, Voyageurs, Voyages, Compagnie, Transports, Asso_trans_voyageur, CustomUser
 
 class FillData:
     print(">>>>>> bonne classe importee")
@@ -15,15 +18,22 @@ class FillData:
         self.filepath = filepath
         self.user = user
         self.xlsx = pd.read_excel(self.filepath, sheet_name=None)
+        self.emails_existants = []  # 🆕 Ajout ici
 
 
     def charge(self):
-        self.load_transporteurs()
-        self.load_voyageurs()
-        self.load_compagnie()
-        self.load_transports()
+        self.load_voyageurs()         # Nécessite CustomUser (voyageur)
+        print("🚀 Début de l'importation des données transporteurs")
+        self.load_transporteurs()     # Nécessite CustomUser (chauffeur)
+        print("🚀 Début de l'importation des données compagnies")
+        self.load_compagnie()         # Associe à un transporteur existant
+        print("🚀 Début de l'importation des données voyages")
+        self.load_transports()        # Dépend de voyages et compagnies
+        print("🚀 Début de l'importation des données transports")
+        self.load_voyages()           # Pas de dépendance critique
+        print("🚀 Début de l'importation des données transports")
         self.load_asso_trans_voyageur()
-        self.load_voyages()
+        self.afficher_emails_existants()  
 
         # Ajout de l’historique après chargement
         from Company.models import HistoriqueImport
@@ -42,29 +52,59 @@ class FillData:
             print("❌ Feuille 'dataTransports' introuvable dans le fichier.")
             return
 
-        voyages = list(Voyages.objects.all())
         compagnies = list(Compagnie.objects.all())
+        transporteurs = list(Transporteurs.objects.all())
+
+        if not compagnies or not transporteurs:
+            print("❌ Aucune compagnie ou transporteur trouvé pour associer les transports.")
+            return
 
         for i, row in df.iterrows():
             Transports.objects.create(
                 marque=row["marque"],
                 matricule=row["matricule"],
                 nombre_de_place=row["nombre_de_place"],
-                voyages=voyages[i % len(voyages)],
                 compagnie=compagnies[i % len(compagnies)],
+                transporteur=transporteurs[i % len(transporteurs)],
+                places_disponibles=row["nombre_de_place"],
+                bagages_disponibles=row.get("bagages_disponibles", 0),
+                disponible=True
             )
+
         print(f"✅ {len(df)} transports importés.")
 
     def load_voyageurs(self):
         df = self.xlsx.get("dataVoyageurs")
         if df is not None:
             for _, row in df.iterrows():
+                email = row["email"]
+                if CustomUser.objects.filter(email=email).exists():
+                    print(f"❌ Utilisateur déjà existant pour {email}, ignoré.")
+                    self.emails_existants.append({
+                        "type": "voyageur",
+                        "email": email,
+                        "nom": row["name"],
+                        "prénom": row["firstname"]
+                    })
+                    continue
+                
+                password = get_random_string(10)
+                user = CustomUser.objects.create_user(
+                        email=email,
+                        password=password,
+                        role="voyageur",
+                        first_name=row["firstname"],
+                        last_name=row["name"]
+                    )
+
                 Voyageurs.objects.create(
-                    name=row["name"],
-                    firstname=row["firstname"],
-                    email=row["email"]
-                )
-            print(f"✅ {len(df)} voyageurs importés.")
+                        name=row["name"],
+                        firstname=row["firstname"],
+                        email=email,
+                        user=user
+                    )
+
+            print(f"✅ {len(df)} voyageurs importés avec CustomUser.")
 
     def load_voyages(self):
         df = self.xlsx.get("dataVoyages")
@@ -94,22 +134,72 @@ class FillData:
     
     def load_transporteurs(self):
         df = self.xlsx.get("dataTransporteurs")
-        if df is None:
-            print("❌ Feuille 'dataTransporteurs' introuvable.")
+        if df is not None:
+            created = 0
+            for _, row in df.iterrows():
+                email = row["email"]
+
+                # Vérifie si un transporteur avec ce mail existe déjà
+                if Transporteurs.objects.filter(email=email).exists():
+                    print(f"⚠️ Transporteur déjà existant pour {email}, ignoré.")
+                    self.emails_existants.append({
+                        "type": "transporteur",
+                        "email": email,
+                        "nom": row["name"],
+                        "prénom": row["firstname"]
+                    })
+                    continue
+
+                # Vérifie aussi que le CustomUser n’existe pas déjà
+                if CustomUser.objects.filter(email=email).exists():
+                    print(f"⚠️ Utilisateur déjà existant pour {email}, ignoré.")
+                    self.emails_existants.append({
+                        "type": "custom_user",
+                        "email": email,
+                        "nom": row["name"],
+                        "prénom": row["firstname"]
+                    })
+                    continue
+
+                
+                    
+                password = get_random_string(10)
+
+                user = CustomUser.objects.create_user(
+                        email=email,
+                        password=password,
+                        role="chauffeur",
+                        first_name=row["firstname"],
+                        last_name=row["name"]
+                    )
+
+                Transporteurs.objects.create(
+                        name=row["name"],
+                        firstname=row["firstname"],
+                        email=email,
+                        phone=row["phone"],
+                        ville=row["ville"],
+                        permis=row["permis"],
+                        adresse=row["adresse"],
+                        date_de_naissance=pd.to_datetime(row["date_de_naissance"]).date(),
+                        user=user
+                    )
+
+                created += 1
+
+            print(f"✅ {created} transporteurs importés avec comptes CustomUser.")
+
+    def afficher_emails_existants(self):
+        if not self.emails_existants:
+            print("✅ Aucun doublon d'email détecté.")
             return
-        
-        for _, row in df.iterrows():
-            Transporteurs.objects.create(
-                name=row["name"],
-                firstname=row["firstname"],
-                date_de_naissance=row["date_de_naissance"],
-                adresse=row["adresse"],
-                ville=row["ville"],
-                permis=row["permis"],
-                phone=row["phone"],
-                email=row["email"]
-            )
-        print(f"✅ {len(df)} transporteurs importés.")
+
+        print("\n📌 Emails déjà existants ignorés :")
+        tableau = [
+            [e["type"], e["email"], e["nom"], e["prénom"]]
+            for e in self.emails_existants
+        ]
+        print(tabulate(tableau, headers=["Type", "Email", "Nom", "Prénom"], tablefmt="grid"))
 
     def load_compagnie(self):
         df = self.xlsx.get("dataCompagnie")

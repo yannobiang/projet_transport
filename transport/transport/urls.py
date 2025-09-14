@@ -19,7 +19,7 @@ from django.urls import path, include
 from Company.views import (home,infos_personnelles,finaliser_reservation, reservation,  homepage2, homepage3, about,vider_table_view, 
 question, contact, comming_soon, career, generate_pdf, login_chauffeur,changer_mot_de_passe, dashboard_chauffeur,custom_404_view,
 dashboard_chauffeur, user_login, verify_code, dashboard, tchat, import_excel_view, register_user, password_reset_voyageur, password_reset_chauffeur,
-sign_in, sign_up, blog, blog_single, team, privacy, telecharger_passagers_pdf, payment_page, payment_complete)
+sign_in, sign_up, blog, blog_single, team, privacy, telecharger_passagers_pdf, payment_page, payment_complete, lancer_paiement)
 
 
 from django.conf import settings
@@ -45,6 +45,8 @@ urlpatterns = [
 
     path("paiement/", payment_page, name="payment"),
     path("paiement/complete/", payment_complete, name="payment_complete"),
+    path('lancer-paiement/', lancer_paiement, name='lancer_paiement'),
+
   
     path('mot-de-passe-voyageur/', password_reset_voyageur, name='password_reset_voyageur'),
     path('mot-de-passe-chauffeur/', password_reset_chauffeur, name='password_reset_chauffeur'),
