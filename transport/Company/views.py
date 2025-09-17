@@ -70,6 +70,10 @@ def home(request):
         dataSend = dict(request.POST)
         # Supposons que `today` soit un `date` :
 
+        if len(dataSend['depart']) == 0 or len(dataSend['destination']) == 0 or dataSend['date_depart'][0] is None:
+            print("je suis bien rentré")
+            return HttpResponse("Données manquantes, veuillez renseigner tous les champs avant de poursuivre", status=400)
+
         # Convertir en datetime à minuit, puis rendre aware
         today = datetime.strptime(dataSend['date_depart'][0], "%Y-%m-%d").date()
 
@@ -592,7 +596,7 @@ def generate_pdf(request):
     prenom = request.session.get("prenom")
     nom = request.session.get("nom")
 
-    user, _ = User.objects.get_or_create(
+    user, created = User.objects.get_or_create(
         email=email,
         defaults={"first_name": prenom, "last_name": nom, "email": email}
     )
@@ -608,11 +612,15 @@ def generate_pdf(request):
     )
     voyageur.password_reset_required = True
     voyageur.save()
+    if created:
+        # Nouveau compte -> on genere un mot de passe temporaire
+        mot_de_passe_temporaire = User.objects.make_random_password(length=10)
+        request.session["mot_de_passe_temp"] = mot_de_passe_temporaire
+        user.set_password(mot_de_passe_temporaire)
+        user.save()
 
-    mot_de_passe_temporaire = User.objects.make_random_password(length=10)
-    request.session["mot_de_passe_temp"] = mot_de_passe_temporaire
-    user.set_password(mot_de_passe_temporaire)
-    user.save()
+    else:
+        request.session["mot_de_passe_temp"] = "Compte existant, mot de passe inchangé."
 
     # Réservation aller et retour
     voyage_ids = [request.session.get("voyage_id_aller"), request.session.get("voyage_id_retour")]

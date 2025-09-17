@@ -204,10 +204,10 @@ document.addEventListener("DOMContentLoaded", function () {
     k.addEventListener("change", function () {
       if (k.checked === true) {
         console.log("aller checked");
-        retour.style.display = "block";
+        retour.style.display = "none";
       } else {
         console.log("aller unchecked");
-        retour.style.display = "none";
+        retour.style.display = "block";
       }
     });
   }
