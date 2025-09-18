@@ -180,12 +180,39 @@ class Voyages(models.Model):
     transporteurs = models.ForeignKey(Transporteurs, on_delete=models.CASCADE)
     transport = models.ForeignKey(Transports, on_delete=models.CASCADE, null=True, blank=True)
 
+    route_geojson = models.JSONField(null=True, blank=True)  # itinéraire prévu (GeoJSON LineString)
+    is_live = models.BooleanField(default=False)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+
 
 
     class Meta:
         verbose_name = "Voyage"
         verbose_name_plural = "Voyages"
 
+# ========================
+# 🚐 Position model
+# ========================
+
+class Position(models.Model):
+    """Points GPS reçus (principalement du chauffeur)."""
+    voyage = models.ForeignKey(Voyages, on_delete=models.CASCADE, related_name='positions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # qui envoie
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    accuracy_m = models.FloatField(null=True, blank=True)
+    captured_at = models.DateTimeField()              # horodatage côté appareil
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["voyage", "-created_at"]),
+        ]
+        ordering = ["-created_at"]
+
+    def _str_(self):
+        return f"{self.voyage_id} @ {self.lat},{self.lon}"
 
 
 # ========================

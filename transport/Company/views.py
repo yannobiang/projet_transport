@@ -13,10 +13,11 @@ from .forms import ViderTableForm
 from openpyxl import load_workbook
 from .models import (Voyages,MessageClientChauffeur, CustomUser, VerificationCode, 
                      Voyageurs, Transporteurs, Reservation, Asso_trans_voyageur, 
-                     Transports, HistoriqueImport)
+                     Transports, HistoriqueImport, Position)
+from django.utils.dateparse import parse_datetime
+from django.views.decorators.http import require_http_methods
 import logging
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 logger = logging.getLogger(__name__)
 from .utils import convert, get_weekday, get_month, safe_format_iso, payer, verifier_paiement
 from django.core.serializers.json import DjangoJSONEncoder
@@ -43,7 +44,6 @@ from reportlab.pdfgen import canvas
 import io
 from io import BytesIO
 import paypalrestsdk
-from django.http import JsonResponse
 
 
 
@@ -1085,6 +1085,11 @@ def dashboard_chauffeur(request):
         }
         for v in voyageurs
     ]
+    from django.utils.timezone import now
+    current_voyage = Voyages.objects.filter(
+        transporteurs=chauffeur,
+        date_depart__gte=now()
+    ).order_by('date_depart').first() or voyages.first()
 
     context = {
         'chauffeur': chauffeur,
@@ -1092,6 +1097,7 @@ def dashboard_chauffeur(request):
         'total_earned': total_earned,
         'last_voyages': last_5_voyages,
         'tchat_links': tchat_links,
+        'current_voyage_id': current_voyage.id if current_voyage else 0,
     }
 
     return render(request, "chauffeur_app/cha_dashboard.html", context)
@@ -1389,3 +1395,114 @@ def vider_table_view(request):
         form = ViderTableForm()
 
     return render(request, "admin/vider_table.html", {"form": form})
+
+
+# Partie GPS et positions
+
+def _get_transporteur_for_user(user):
+    if getattr(user, "role", None) != "chauffeur":
+        return None
+    try:
+        return Transporteurs.objects.get(user=user)
+    except Transporteurs.DoesNotExist:
+        return None
+
+def _get_voyageur_for_user(user):
+    if getattr(user, "role", None) != "voyageur":
+        return None
+    try:
+        return Voyageurs.objects.get(user=user)
+    except Voyageurs.DoesNotExist:
+        return None
+
+def _user_is_chauffeur_of_voyage(user, voyage: Voyages) -> bool:
+    # autorise staff ou chauffeur propriétaire du voyage
+    if user.is_staff:
+        return True
+    if getattr(user, "role", None) != "chauffeur":
+        return False
+    return voyage.transporteurs and voyage.transporteurs.user_id == user.id
+
+def _user_is_voyageur_of_voyage(user, voyage: Voyages) -> bool:
+    if user.is_staff:
+        return True
+    if getattr(user, "role", None) != "voyageur":
+        return False
+    # le user doit avoir une réservation sur ce voyage
+    return Reservation.objects.filter(voyage=voyage, voyageur__user_id=user.id).exists()
+
+def _user_can_read_voyage_state(user, voyage: Voyages) -> bool:
+    return _user_is_chauffeur_of_voyage(user, voyage) or _user_is_voyageur_of_voyage(user, voyage)
+
+
+@login_required
+@require_http_methods(["POST"])
+def PushPosition(request):
+    """
+    JSON attendu: { voyage_id, lat, lon, captured_at(ISO), accuracy_m? }
+    Seul le CHAUFFEUR du voyage (ou staff) peut pousser sa position.
+    """
+    # rôle requis
+    if not (request.user.is_staff or getattr(request.user, "role", None) == "chauffeur"):
+        return HttpResponseForbidden("Réservé au chauffeur.")
+
+    try:
+        data = json.loads(request.body or "{}")
+    except Exception:
+        return JsonResponse({"ok": False, "error": "JSON invalide"}, status=400)
+
+    voyage_id = data.get("voyage_id")
+    lat = data.get("lat")
+    lon = data.get("lon")
+    captured_at = data.get("captured_at")
+    accuracy_m = data.get("accuracy_m")
+
+    if voyage_id is None or lat is None or lon is None or not captured_at:
+        return JsonResponse({"ok": False, "error": "Champs manquants"}, status=400)
+
+    voyage = get_object_or_404(Voyages, id=voyage_id)
+
+    # vérifie que ce chauffeur est bien associé à ce voyage
+    if not _user_is_chauffeur_of_voyage(request.user, voyage):
+        return HttpResponseForbidden("Vous n'êtes pas le chauffeur de ce voyage.")
+
+    dt = parse_datetime(captured_at)
+    if dt is None:
+        return JsonResponse({"ok": False, "error": "captured_at invalide (ISO attendu)."}, status=400)
+
+    Position.objects.create(
+        voyage=voyage,
+        user=request.user,
+        lat=lat,
+        lon=lon,
+        accuracy_m=accuracy_m,
+        captured_at=dt,
+    )
+
+    if not voyage.is_live:
+        voyage.is_live = True
+        if not voyage.start_time:
+            voyage.start_time = timezone.now()
+        voyage.save(update_fields=["is_live", "start_time"])
+
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_http_methods(["GET"])
+def VoyageState(request, voyage_id: int):
+    voyage = get_object_or_404(Voyages, id=voyage_id)
+
+    if not _user_can_read_voyage_state(request.user, voyage):
+        return HttpResponseForbidden("Accès refusé.")
+
+    qs = voyage.positions.order_by("-created_at")[:50]
+    recent = [{"lat": float(p.lat), "lon": float(p.lon), "t": p.captured_at.isoformat()} for p in reversed(qs)]
+    lastp = recent[-1] if recent else None
+
+    return JsonResponse({
+        "voyage_id": voyage.id,
+        "route_geojson": voyage.route_geojson,   # peut être null
+        "last_point": lastp,
+        "recent_points": recent,
+    })

@@ -170,9 +170,35 @@
                         </div>
                     </div>
                 </section>
+                <br>
+                <!-- ====================================================== -->
+                <!-- Ajout d'une carte de navigation pour suivre le vehicule -->
+                <!--======================================================= -->
+
+                <section class="mt-3">
+                    <h3>Mon itinéraire</h3>
+                    <div id="map-voyageur" style="height:70vh;border-radius:8px;overflow:hidden;"></div>
+                </section>
+                  
+                <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+                <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
+                <script src="{% static 'js/js_carte_user.js' %}" defer></script>
+                  
+                <script>
+                    document.addEventListener('DOMContentLoaded', function(){
+                      var voyageId = parseInt('{{ next_travel.id|default_if_none:"0"|default:"0" }}', 10);
+                      initVoyageurMap({ voyageId: voyageId, mapDivId: 'map-voyageur' });
+                    });
+                </script>
+                
+                <!--=============================================================-->
+                <!-- Fin de l'ajout du traceur GPS pour suivre le voyage en live -->
+                <!--============================================================-->
             </main>
         </div>
     </div>
+
+
 </body>
 </html>
 
