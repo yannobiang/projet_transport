@@ -1,0 +1,17 @@
+I Ce qui a déjà été fait  :
+
+front :
+
+Un page d'acceuil front (A améliorer front)
+Un partie utilisateur (Voyageur)
+Une partie utilisateur (Chauffeur) (A améliorer hergonomie)
+Une barre de recherche des voyages  -> qui renvoie tous les voyages disponibles en base lorsqu'ils existent sinon une page de retour à home
+Une page contact
+Une page about us
+Une page demande de sponsor
+....
+
+Back :
+
+Un model de données dans model.py
+
